@@ -21,16 +21,46 @@ with open("sdk/tags.bin", 'rb') as tags_file: tags = tags_file.read()
 # Find the location of the resources in the AXF file by searching for bytes
 # I know this is definitely not the best way, but it will do for now
 res_offset = axf.find(bytes([0x41,0x70,0x70,0x4C,0x6F,0x67,0x6F,0x2E,0x69,0x6D,0x67,0x00,0x30,0x00,0x00,0x00,0xE0]))
+if (res_offset == -1):
+    raise RuntimeError("Resource offset not found")
 
-# Write some addresses into the embedded resource file
-insert_int32(res_offset + 12, res_offset + 48)  # AppLogo.img
-insert_int32(res_offset + 28, res_offset + 2064)  # mre-2.0
-insert_int32(res_offset + 37, res_offset + 2064)  # mre-2.0... again?
-insert_int32(res_offset + 2068, res_offset + 2096)  # wtf?
-insert_int32(res_offset + 2076, res_offset + 2108)
-insert_int32(res_offset + 2084, res_offset + 2108)
-insert_int32(res_offset + 2076, res_offset + 2120)
-insert_int32(res_offset + 2092, res_offset + 2132)
+# ______________________________________________________________________________
+# 
+#  Fix absolute address offsets in the inserted resource file
+#  Based on https://github.com/XimikBoda/TinyMRESDK/blob/main/PackApp/main.cpp
+# ______________________________________________________________________________
+# 
+pos = res_offset
+
+while True:
+    oldpos = pos
+    while axf[pos] != 0:
+        pos += 1
+    pos += 1
+
+    if axf[pos - 2] == 0:
+        break
+
+    offset = int.from_bytes(axf[pos:pos+4], byteorder='little')
+    insert_int32(pos, offset + res_offset)
+    pos += 8
+
+res2_offset = int.from_bytes(axf[pos:pos+4], byteorder='little')
+res2_offset += res_offset
+insert_int32(pos, res2_offset)
+
+pos = res2_offset
+
+while True:
+    id = int.from_bytes(axf[pos:pos+4], byteorder='little')
+    pos += 4
+
+    offset = int.from_bytes(axf[pos:pos+4], byteorder='little')
+    insert_int32(pos, offset + res_offset)
+    pos += 4
+
+    if id == 0xFFFFFFFF:
+        break
 
 # ______________________________________________________________________________
 #
