@@ -5,12 +5,13 @@
 #include "vmstdlib.h"
 #include "vmtimer.h"
 #include "vm4res.h"
+#include <stdio.h>
+
+#include "fs.h"
 
 #define ENABLE_LCD 1
 #define PEANUT_GB_12_COLOUR 0
 #include "peanut_gb.h"
-
-#include "rom.h"
 
 /* ---------------------------------------------------------------------------
 * global variables
@@ -25,6 +26,12 @@ VMINT screen_width;
 VMINT screen_height;
 
 struct gb_s *gb;
+VMUINT8 *rom_data;
+VMUINT8 *rom_name;
+char save_name[32];
+VMUINT8 *cart_ram;
+
+int cart_ram_has_changed;
 // VMINT16 filename_ucs2[32];
 // VMFILE rom;
 // VMUINT read_result, read_unused;
@@ -52,8 +59,15 @@ VMUINT8 gb_rom_read(struct gb_s *gb, const uint_fast32_t addr) {
 	return rom_data[addr];
 }
 
-VMUINT8 gb_cart_ram_read(struct gb_s *gb, const uint_fast32_t addr) {}
-void gb_cart_ram_write(struct gb_s *gb, const uint_fast32_t addr, const uint8_t val) {}
+VMUINT8 gb_cart_ram_read(struct gb_s *gb, const uint_fast32_t addr) {
+	return cart_ram[addr];
+}
+
+void gb_cart_ram_write(struct gb_s *gb, const uint_fast32_t addr, const uint8_t val) {
+	cart_ram[addr] = val;
+	cart_ram_has_changed = 1;  // mark cart ram to be written to file next frame
+}
+
 void gb_error(struct gb_s* gb, const enum gb_error_e err, const uint16_t addr) {}
 
 void lcd_draw_line(struct gb_s *gb, const uint8_t pixels[160], const unsigned int line) {
@@ -99,20 +113,58 @@ void draw_frame(VMINT tid) {
 		sprintf(fps_str, "%d fps", (int) 1000 / (vm_get_tick_count() - tick));
 		set_message(fps_str);
 	}
+
+	if (cart_ram_has_changed) {
+		write_from_addr_to_file(save_name, cart_ram, gb_get_save_size(gb));
+		cart_ram_has_changed = 0;
+	}
 }
 
 /*
 * entry
 */
 void vm_main(void) {
+	log_init();
+	log_write("Started logging");
+	
 	/* initialize layer handle */
 	layer_hdl[0] = -1;
 	layer_hdl[1] = -1;
 
-	// Init emulator
+	// Allocate emulator, load ROM data
 	gb = malloc(sizeof (struct gb_s));
+	log_write("Allocated GB state");
+	read_from_file_to_addr("rom.gb", (void **)&rom_data);
+	log_write("Loaded ROM");
+
+	// Init emulator
 	gb_init(gb, gb_rom_read, gb_cart_ram_read, gb_cart_ram_write, gb_error, NULL);
 	gb_init_lcd(gb, lcd_draw_line);
+	log_write("Initialized emulator");
+
+	rom_name = malloc(16);
+	rom_name = (char *)gb_get_rom_name(gb, rom_name);
+	sprintf(save_name, "save_%s.sav", rom_name);
+	log_write("Created save file name");
+
+	VMCHAR save_name_full[64];
+	sprintf(save_name_full, "e:\\peanutvxp\\%s", save_name);
+	VMWCHAR save_name_ucs2[64];
+	vm_ascii_to_ucs2(save_name_ucs2, 128, save_name_full);
+	log_write("Created save file full name");
+
+	if (vm_file_get_attributes(save_name_ucs2) != -1) {
+		log_write("Save file found, loading it");
+		read_from_file_to_addr(save_name, (void **)&cart_ram);
+	} else {
+		if (gb_get_save_size(gb)) {
+			log_write("Save file not found, creating it");
+			cart_ram = calloc(gb_get_save_size(gb), 1);
+		} else {
+			log_write("This game doesn't use save data");
+		}
+	}
+	log_write("Loaded/created save file");
 
 	// Frameskip
 	// gb->direct.interlace = 1;
@@ -120,6 +172,7 @@ void vm_main(void) {
 
 	vm_switch_power_saving_mode(turn_off_mode);
 	vm_graphic_set_font(VM_SMALL_FONT);
+	log_write("Set runtime parameters");
 
 	// Open ROM file (gb_rom_read reads bytes from it as needed)
 	// vm_ascii_to_ucs2(filename_ucs2, 32, "e:\\mre\\rom.gb");
@@ -130,6 +183,7 @@ void vm_main(void) {
 	vm_reg_keyboard_callback(handle_keyevt);
 	vm_reg_pen_callback(handle_penevt);
 	vm_create_timer(33, draw_frame);
+	log_write("Created event handlers. Running.");
 
 	/* Init MRE resource */
 	vm_res_init();

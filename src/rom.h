@@ -1,1 +1,0 @@
-#error "No ROM file. Please see the README for a guide on creating a ROM for the emulator."
