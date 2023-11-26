@@ -6,6 +6,7 @@ Game Boy emulator based on [Peanut-GB](https://github.com/deltabeard/Peanut-GB) 
 ## Status
 * Currently the emulator can run any Game Boy (not Color) ROM that we've tested. The emulator core itself should support at least [these games](https://github.com/deltabeard/Peanut-GB/issues/31).
 * Input is supported, but only one key can be pressed at a time.
+* Sound emulation is not implemented.
 * In-game saving is supported, though it's a bit slow.
 * Save states are not supported.
 
