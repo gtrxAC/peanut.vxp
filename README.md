@@ -4,7 +4,7 @@ Game Boy emulator based on [Peanut-GB](https://github.com/deltabeard/Peanut-GB) 
 ![](img/marioland_215.jpg)
 
 ## Status
-* Currently the emulator can run any Game Boy (not Color) ROM that we've tested. Some games like Pokémon Red/Blue may have graphical issues.
+* Currently the emulator can run any Game Boy (not Color) ROM that we've tested. The emulator core itself should support at least [these games](https://github.com/deltabeard/Peanut-GB/issues/31).
 * Input is supported, but only one key can be pressed at a time.
 * In-game saving is supported, though it's a bit slow.
 * Save states are not supported.
