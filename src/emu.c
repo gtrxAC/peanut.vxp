@@ -144,22 +144,23 @@ void handle_keyevt_emu(VMINT event, VMINT keycode) {
 //  Emulator initialization and ROM loading
 // _____________________________________________________________________________
 //
-void load_rom(char *filename) {
+// This initializes the emulator just enough so that its settings are loaded
+// and can be modified. Further loading happens in load_rom.
+void init_emu() {
 	if (gb) free(gb);
 	gb = calloc(1, sizeof (struct gb_s));
 	log_write("Allocated GB state");
-	char log_str[32];
+	
+	// TODO: config loading
+}
 
-	sprintf(log_str, "gb is: %d", gb);
-	log_write(log_str);
+void load_rom(char *filename) {
+	init_emu();
 
 	// Load ROM data
 	if (rom_data) free(rom_data);
 	read_from_file_to_addr(filename, (void **)&rom_data);
 	log_write("Loaded ROM");
-
-	sprintf(log_str, "rom is: %d", rom_data);
-	log_write(log_str);
 
 	// Init emulator
 	gb_init(gb, gb_rom_read, gb_cart_ram_read, gb_cart_ram_write, gb_error, NULL);

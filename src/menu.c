@@ -101,8 +101,8 @@ void set_menu(Menu new_menu) {
             arrput(menu_list, "Load ROM");
             if (gb_inited) {
                 arrput(menu_list, "Reset");
-                arrput(menu_list, "Load state (coming soon)");
-                arrput(menu_list, "Save state (coming soon)");
+                // arrput(menu_list, "Load state (coming soon)");
+                // arrput(menu_list, "Save state (coming soon)");
             }
             arrput(menu_list, "Options");
             arrput(menu_list, "About");
@@ -115,6 +115,7 @@ void set_menu(Menu new_menu) {
             struct vm_fileinfo_t fileinfo;
             vm_ascii_to_ucs2(ucs2_str, 256, "e:\\peanutvxp\\*.gb");
             VMINT find_handle = vm_find_first(ucs2_str, &fileinfo);
+            VMINT find_result;
 
             if (find_handle < 0) {
                 char *no_files_str = malloc(16);
@@ -125,8 +126,8 @@ void set_menu(Menu new_menu) {
             arrput_ucs2(fileinfo.filename);
 
             while (VM_TRUE) {
-                find_handle = vm_find_next(find_handle, &fileinfo);
-                if (find_handle < 0) break;
+                find_result = vm_find_next(find_handle, &fileinfo);
+                if (find_result < 0) break;
                 arrput_ucs2(fileinfo.filename);
             }
             vm_find_close(find_handle);
@@ -134,13 +135,11 @@ void set_menu(Menu new_menu) {
         }
 
         case MENU_OPTIONS: {
-            arrput(menu_list, "None of these work yet.");
-            arrput(menu_list, 0 ? "Audio ON" : "Audio OFF");
             arrput(menu_list, gb->direct.interlace ? "Interlacing ON" : "Interlacing OFF");
-            arrput(menu_list, "Key mappings");
-            arrput(menu_list, "Palettes");
-            arrput(menu_list, 0 ? "Scaling ON" : "Scaling OFF");
-            arrput(menu_list, "Rotation");
+            // arrput(menu_list, "Key mappings");
+            // arrput(menu_list, "Palettes");
+            // arrput(menu_list, 0 ? "Scaling ON" : "Scaling OFF");
+            // arrput(menu_list, "Rotation");
             break;
         }
 
@@ -148,15 +147,6 @@ void set_menu(Menu new_menu) {
             arrput(menu_list, "peanut.vxp");
             arrput(menu_list, "GB emulator for MRE");
             arrput(menu_list, "github.com/gtrxAC");
-            arrput(menu_list, "");
-
-            malloc_stat_t *memstat = vm_get_malloc_stat();
-            sprintf(memstat_str[0], "Memstat addr: %d", memstat);
-            sprintf(memstat_str[1], "Mem used: %d", vm_get_mre_total_mem_size());
-            sprintf(memstat_str[2], "Mem free: %d", memstat->avail_heap_size);
-            arrput(menu_list, memstat_str[0]);
-            arrput(menu_list, memstat_str[1]);
-            arrput(menu_list, memstat_str[2]);
             break;
         }
     }
@@ -211,7 +201,10 @@ void menu_confirm() {
             break;
             
         case MENU_OPTIONS:
-            set_menu(MENU_MAIN);
+            if (!strncmp(menu_list[menu_choice], "Interlacing", 11)) {
+                gb->direct.interlace = !gb->direct.interlace;
+                set_menu(MENU_OPTIONS);
+            }
             break;
             
         case MENU_ABOUT:

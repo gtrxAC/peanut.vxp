@@ -13,4 +13,5 @@ void draw_emu();
 
 void handle_keyevt_emu(VMINT event, VMINT keycode);
 
+void init_emu();
 void load_rom(char *filename);

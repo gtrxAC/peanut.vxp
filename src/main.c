@@ -68,6 +68,9 @@ void vm_main(void) {
 	vm_create_timer(33, draw_frame);
 	log_write("Created event handlers");
 
+	// Initialize emulator settings
+	init_emu();
+
 	// Initialize menu
 	set_state(ST_MENU);
 	set_menu(MENU_MAIN);
