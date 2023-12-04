@@ -1,6 +1,28 @@
+#define PEANUT_GB_HEADER_ONLY
 #include "common.h"
 
 Config *config;
+
+extern int screen_width;
+extern int screen_height;
+extern VMWCHAR ucs2_str[128];
+
+const VMUINT16 palettes[PALETTE_COUNT][4] = {
+    // Default - https://lospec.com/palette-list/2bit-demichrome
+    {0xE77C, 0x9CF0, 0x52AC, 0x20A3},
+
+    // BGB - https://lospec.com/palette-list/nintendo-gameboy-bgb
+    {0xDFB9, 0x85ED, 0x332A, 0x00A3},
+
+    // Blue - https://lospec.com/palette-list/eb-gb-plain-flavour
+    {0xCF18, 0x9497, 0x5212, 0x18C3},
+
+    // Gold - https://lospec.com/palette-list/gb-chocolate
+    {0xFF17, 0xD50A, 0xA2E9, 0x4146},
+
+    // Crimson - https://lospec.com/palette-list/crimson
+    {0xEFBA, 0xB268, 0x70C9, 0x1804}
+};
 
 void default_config() {
     config = malloc(sizeof(Config));
@@ -14,10 +36,12 @@ void default_config() {
     }
 
     config->rotation = ROTATION_NONE;
-    config->palette[0] = 0xE77C;
-    config->palette[1] = 0x9CF0;
-    config->palette[2] = 0x52AC;
-    config->palette[3] = 0x20A3;
+
+    int rand_palette = rand() % PALETTE_COUNT;
+    config->palette_choice = rand_palette;
+    for (int i = 0; i < 4; i++) {
+        config->palette[i] = palettes[rand_palette][i];
+    }
 
     config->key_up = VM_KEY_UP;
     config->key_down = VM_KEY_DOWN;
@@ -32,10 +56,10 @@ void default_config() {
 
 void load_config() {
     if (config) free(config);
-    vm_ascii_to_ucs2(ucs2_str, 256, "peanut.cfg");
+    vm_ascii_to_ucs2(ucs2_str, 256, "e:\\peanutvxp\\peanut.cfg");
 
     if (vm_file_get_attributes(ucs2_str) != -1) {
-        read_from_file_to_addr("peanut.cfg", &config);
+        read_from_file_to_addr("peanut.cfg", (void **)&config);
         log_write("Loaded configuration file");
     } else {
         default_config();

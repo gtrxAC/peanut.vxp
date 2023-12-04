@@ -41,7 +41,10 @@ void init_canvas() {
 	}
 
 	// Delete previous canvas/layer data if needed
-	// TODO
+	if (layer_hdl[1] != -1) {
+		vm_graphic_delete_layer(layer_hdl[1]);
+		vm_graphic_release_canvas(canvas);
+	}
 
 	// Create new canvas and layer with the appropriate size
 	canvas = vm_graphic_create_canvas_cf(VM_GRAPHIC_COLOR_FORMAT_16, canvas_width, canvas_height);
@@ -127,15 +130,13 @@ void handle_sysevt(VMINT message, VMINT param) {
 		}
 			
 		case VM_MSG_INACTIVE:
-			if( layer_hdl[0] != -1 )
-				vm_graphic_delete_layer(layer_hdl[0]);
-			break;	
-
 		case VM_MSG_QUIT:
 			// This is where de-initialization tasks would be done, but they are
 			// unnecessary for MRE (all allocated memory is freed at once).
-			if( layer_hdl[0] != -1 )
+			write_save();
+			if( layer_hdl[0] != -1 ) {
 				vm_graphic_delete_layer(layer_hdl[0]);
-			break;	
+			}
+			break;
 	}
 }

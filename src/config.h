@@ -3,19 +3,22 @@
 
 typedef enum ScaleMode {
     SCALE_1X,
-    SCALE_1_5X,
-    SCALE_2X
+    SCALE_2X,
+    SCALE_COUNT,
+    SCALE_1_5X
 } ScaleMode;
 
 typedef enum RotationMode {
     ROTATION_NONE
-} RotationMode
+} RotationMode;
 
 typedef struct Config {
     int version;
     VMBOOL interlace;
     ScaleMode scale;
     RotationMode rotation;
+
+    int palette_choice;
     VMUINT16 palette[4];
 
     int key_up, key_down, key_left, key_right;

@@ -12,6 +12,8 @@ extern struct gb_s *gb;
 extern State state;
 extern VMWCHAR ucs2_str[128];
 
+extern const VMUINT16 palettes[PALETTE_COUNT][4];
+
 char **menu_list; // stb_ds
 int menu_choice;
 int main_menu_choice;
@@ -135,10 +137,22 @@ void set_menu(Menu new_menu) {
         }
 
         case MENU_OPTIONS: {
-            arrput(menu_list, gb->direct.interlace ? "Interlacing ON" : "Interlacing OFF");
+            arrput(menu_list, gb->direct.interlace ? "Interlacing: ON" : "Interlacing: OFF");
+            switch (config->scale) {
+                case SCALE_1X: arrput(menu_list, "Scaling: 1x"); break;
+                case SCALE_1_5X: arrput(menu_list, "Scaling: 1.5x (not impl'd)"); break;
+                case SCALE_2X: arrput(menu_list, "Scaling: 2x (experimental)"); break;
+                default: arrput(menu_list, "Scaling: Unknown"); break;
+            }
+            switch (config->palette_choice) {
+                case 0: arrput(menu_list, "Palette: Default"); break;
+                case 1: arrput(menu_list, "Palette: BGB"); break;
+                case 2: arrput(menu_list, "Palette: Blue"); break;
+                case 3: arrput(menu_list, "Palette: Gold"); break;
+                case 4: arrput(menu_list, "Palette: Crimson"); break;
+                default: arrput(menu_list, "Palette: Unknown"); break;
+            }
             // arrput(menu_list, "Key mappings");
-            // arrput(menu_list, "Palettes");
-            // arrput(menu_list, 0 ? "Scaling ON" : "Scaling OFF");
             // arrput(menu_list, "Rotation");
             break;
         }
@@ -203,7 +217,27 @@ void menu_confirm() {
         case MENU_OPTIONS:
             if (!strncmp(menu_list[menu_choice], "Interlacing", 11)) {
                 gb->direct.interlace = !gb->direct.interlace;
+                config->interlace = gb->direct.interlace;
+                save_config();
                 set_menu(MENU_OPTIONS);
+            }
+            else if (!strncmp(menu_list[menu_choice], "Scaling", 7)) {
+                config->scale++;
+                if (config->scale == SCALE_COUNT) config->scale = SCALE_1X;
+                init_canvas();
+                save_config();
+                set_menu(MENU_OPTIONS);
+                menu_choice = 1;
+            }
+            else if (!strncmp(menu_list[menu_choice], "Palette", 7)) {
+                config->palette_choice++;
+                if (config->palette_choice == PALETTE_COUNT) config->palette_choice = 0;
+                for (int i = 0; i < 4; i++) {
+                    config->palette[i] = palettes[config->palette_choice][i];
+                }
+                save_config();
+                set_menu(MENU_OPTIONS);
+                menu_choice = 2;
             }
             break;
             

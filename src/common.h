@@ -33,3 +33,6 @@ typedef enum Menu {
 #include "config.h"
 
 void set_state(State new_state);
+void init_canvas();
+
+#define PALETTE_COUNT 5

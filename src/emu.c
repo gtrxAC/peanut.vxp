@@ -14,6 +14,8 @@ char fps_str[16];
 VMWCHAR message[32];
 int message_timer;
 
+int last_rtc_tick;
+
 extern VMUINT8 *canvas_buf;
 extern VMINT layer_hdl[2];
 extern VMINT screen_width;
@@ -65,8 +67,31 @@ void gb_error(struct gb_s* gb, const enum gb_error_e err, const uint16_t addr) {
 }
 
 void lcd_draw_line(struct gb_s *gb, const uint8_t pixels[160], const unsigned int line) {
-	for (int i = 0; i < 160; i++) {
-		((VMUINT16 *)canvas_buf)[160*line + i] = config->palette[pixels[i]];
+	switch (config->scale) {
+		case SCALE_1X: {
+			for (int i = 0; i < 160; i++) {
+				((VMUINT16 *)canvas_buf)[160*line + i] = config->palette[pixels[i]];
+			}
+			break;
+		}
+
+		case SCALE_2X: {
+			for (int i = 0; i < 160; i++) {
+				((VMUINT16 *)canvas_buf)[640*line + i*2] = config->palette[pixels[i]];
+				((VMUINT16 *)canvas_buf)[640*line + i*2 + 1] = config->palette[pixels[i]];
+				((VMUINT16 *)canvas_buf)[640*line + i*2 + 320] = config->palette[pixels[i]];
+				((VMUINT16 *)canvas_buf)[640*line + i*2 + 321] = config->palette[pixels[i]];
+			}
+			break;
+		}
+	}
+}
+
+void write_save() {
+	int save_size = gb_get_save_size(gb);
+	if (gb_inited && save_size) {
+		write_from_addr_to_file(save_name, cart_ram, save_size);
+		log_write("Wrote save file");
 	}
 }
 
@@ -89,10 +114,16 @@ void draw_emu() {
     gb_run_frame(gb);
     vm_graphic_flush_layer(layer_hdl, 2);
 
+	int new_tick_count = vm_get_tick_count();
+
     if (show_fps) {
-        sprintf(fps_str, "%d fps", (int) 1000 / (vm_get_tick_count() - tick_count));
+        sprintf(fps_str, "%d fps", (int) 1000 / (new_tick_count - tick_count));
         set_message(fps_str);
     }
+	if (new_tick_count >= last_rtc_tick + 1000) {
+		gb_tick_rtc(gb);
+		last_rtc_tick += 1000;
+	}
 }
 
 // _____________________________________________________________________________
@@ -103,33 +134,40 @@ void draw_emu() {
 void handle_keyevt_emu(VMINT event, VMINT keycode) {
 	switch (event) {
 		case VM_KEY_EVENT_DOWN: {
-			switch (keycode) {
-				case config->key_up: gb->direct.joypad_bits.up = 0; break;
-				case config->key_left: gb->direct.joypad_bits.left = 0; break;
-				case config->key_down: gb->direct.joypad_bits.down = 0; break;
-				case config->key_right: gb->direct.joypad_bits.right = 0; break;
-				case config->key_a: gb->direct.joypad_bits.a = 0; break;
-				case config->key_b: gb->direct.joypad_bits.b = 0; break;
-				case config->key_select: gb->direct.joypad_bits.select = 0; break;
-				case config->key_start: gb->direct.joypad_bits.start = 0; break;
+			if      (keycode == config->key_up) gb->direct.joypad_bits.up = 0;
+			else if (keycode == config->key_down) gb->direct.joypad_bits.down = 0;
+			else if (keycode == config->key_left) gb->direct.joypad_bits.left = 0;
+			else if (keycode == config->key_right) gb->direct.joypad_bits.right = 0;
+			else if (keycode == config->key_a) gb->direct.joypad_bits.a = 0;
+			else if (keycode == config->key_b) gb->direct.joypad_bits.b = 0;
+			else if (keycode == config->key_start) gb->direct.joypad_bits.start = 0;
+			else if (keycode == config->key_select) gb->direct.joypad_bits.select = 0;
 
-				case VM_KEY_NUM0:
-					set_state(ST_MENU);
-					set_menu(MENU_MAIN);
-					break;
+			else if (keycode == VM_KEY_NUM0) {
+				write_save();
+				set_state(ST_MENU);
+				set_menu(MENU_MAIN);
 			}
 			break;
 		}
 
 		case VM_KEY_EVENT_UP: {
-			gb->direct.joypad_bits.up = 1;
-			gb->direct.joypad_bits.left = 1;
-			gb->direct.joypad_bits.down = 1;
-			gb->direct.joypad_bits.right = 1;
-			gb->direct.joypad_bits.a = 1;
-			gb->direct.joypad_bits.b = 1;
-			gb->direct.joypad_bits.select = 1;
-			gb->direct.joypad_bits.start = 1;
+			if      (keycode == config->key_up) gb->direct.joypad_bits.up = 1;
+			else if (keycode == config->key_down) gb->direct.joypad_bits.down = 1;
+			else if (keycode == config->key_left) gb->direct.joypad_bits.left = 1;
+			else if (keycode == config->key_right) gb->direct.joypad_bits.right = 1;
+			else if (keycode == config->key_a) gb->direct.joypad_bits.a = 1;
+			else if (keycode == config->key_b) gb->direct.joypad_bits.b = 1;
+			else if (keycode == config->key_start) gb->direct.joypad_bits.start = 1;
+			else if (keycode == config->key_select) gb->direct.joypad_bits.select = 1;
+			// gb->direct.joypad_bits.up = 1;
+			// gb->direct.joypad_bits.left = 1;
+			// gb->direct.joypad_bits.down = 1;
+			// gb->direct.joypad_bits.right = 1;
+			// gb->direct.joypad_bits.a = 1;
+			// gb->direct.joypad_bits.b = 1;
+			// gb->direct.joypad_bits.select = 1;
+			// gb->direct.joypad_bits.start = 1;
 			break;
 		}
 
@@ -196,5 +234,36 @@ void load_rom(char *filename) {
 		}
 	}
 	log_write("Loaded/created save file");
+
+	init_rtc();
     set_state(ST_RUNNING);
+}
+
+// _____________________________________________________________________________
+//
+//  RTC initialization (MRE vm_time -> C struct tm)
+// _____________________________________________________________________________
+//
+const int days_in_month[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+void init_rtc() {
+	vm_time_t mre_time;
+	int result = vm_get_time(&mre_time);
+	if (result == -1) return;
+
+	// Calculate day of year (0-365).
+	for (int i = 1; i < mre_time.mon; i++) {
+		mre_time.day += days_in_month[i];
+	}
+
+	// Create a Peanut-GB compatible 'struct tm' counterpart from the MRE time.
+	// MRE time values begin from 1, C time values begin from 0.
+	struct tm c_time = {
+		mre_time.sec - 1,
+		mre_time.min - 1,
+		mre_time.hour - 1,
+		mre_time.day - 1
+	};
+	gb_set_rtc(gb, &c_time);
+	log_write("Set RTC time");
 }
