@@ -6,8 +6,8 @@ Game Boy emulator based on [Peanut-GB](https://github.com/deltabeard/Peanut-GB) 
 ## Status
 * Currently the emulator can run any Game Boy (not Color) ROM that we've tested. The emulator core itself should support at least [these games](https://github.com/deltabeard/Peanut-GB/issues/31).
 * Input is supported, but only one key can be pressed at a time.
-* Sound emulation is not implemented.
-* In-game saving is supported, though it's a bit slow.
+* Sound emulation is not implemented and not planned due to MRE limitations.
+* In-game saving is supported, though it's a bit slow. (currently not working in development versions, use 1.0.0 for now)
 * Save states are not supported.
 
 ## Compatibility
@@ -21,6 +21,7 @@ peanut.vxp currently works on any phone with MRE 3, those mostly being Nokia and
 | Doro PhoneEasy 530X<br>Likely other Doro phones | Crash
 | Logic M5 | Crash
 | Mobiwire Dakota | Crash
+| MyPhone my16 | Unsupported (doesn't have enough RAM)
 | Alcatel OT-871a | Failed to start
 | Motorola Gleam+ | Failed to start
 
