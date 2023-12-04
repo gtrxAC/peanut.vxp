@@ -30,5 +30,6 @@ typedef enum Menu {
 
 #include "emu.h"
 #include "menu.h"
+#include "config.h"
 
 void set_state(State new_state);

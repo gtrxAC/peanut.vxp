@@ -242,6 +242,10 @@ void handle_keyevt_menu(VMINT event, VMINT keycode) {
 
                 case VM_KEY_BACK: case VM_KEY_RIGHT_SOFTKEY:
                     menu_back(); break;
+
+				case VM_KEY_NUM0:
+                    if (gb_inited) set_state(ST_RUNNING);
+					break;
 			}
 			break;
 		}

@@ -32,6 +32,29 @@ void set_state(State new_state) {
 	}
 }
 
+void init_canvas() {
+	int canvas_width, canvas_height;
+	switch (config->scale) {
+		case SCALE_1X: canvas_width = 160; canvas_height = 144; break;
+		case SCALE_1_5X: canvas_width = 240; canvas_height = 216; break;
+		case SCALE_2X: canvas_width = 320; canvas_height = 288; break;
+	}
+
+	// Delete previous canvas/layer data if needed
+	// TODO
+
+	// Create new canvas and layer with the appropriate size
+	canvas = vm_graphic_create_canvas_cf(VM_GRAPHIC_COLOR_FORMAT_16, canvas_width, canvas_height);
+	canvas_buf = vm_graphic_get_canvas_buffer(canvas) + VM_CANVAS_DATA_OFFSET;
+	layer_hdl[1] = vm_graphic_create_layer_cf(
+		VM_GRAPHIC_COLOR_FORMAT_16,
+		screen_width/2 - canvas_width/2, screen_height/2 - canvas_height/2, 
+		canvas_width, canvas_height,
+		(vm_graphic_color_argb *)VM_NO_TRANS_COLOR, VM_BUF, canvas_buf,
+		canvas_width*canvas_height*2
+	);
+}
+
 void draw_frame(VMINT tid) {
 	switch (state) {
 		case ST_MENU: draw_menu(); break;
@@ -79,41 +102,40 @@ void vm_main(void) {
 
 void handle_sysevt(VMINT message, VMINT param) {
 	switch (message) {
-	case VM_MSG_CREATE:	/* the message of creation of application */
-	case VM_MSG_ACTIVE: /* the message of application state from inactive to active */
-		/*cerate base layer that has same size as the screen*/
-		screen_width = vm_graphic_get_screen_width();
-		screen_height = vm_graphic_get_screen_height();
-		layer_hdl[0] = vm_graphic_create_layer(0, 0, screen_width, screen_height, VM_NO_TRANS_COLOR);
-		
-		/* set clip area*/
-		vm_graphic_set_clip(0, 0, screen_width, screen_height);
+		case VM_MSG_CREATE:
+		case VM_MSG_ACTIVE:
+			// Create base layer that has same size as the screen. This layer is
+			// used for the menus, and is usually a static black background when
+			// in-game, except for pop-up messages. 
+			screen_width = vm_graphic_get_screen_width();
+			screen_height = vm_graphic_get_screen_height();
+			layer_hdl[0] = vm_graphic_create_layer(0, 0, screen_width, screen_height, VM_NO_TRANS_COLOR);
+			vm_graphic_set_clip(0, 0, screen_width, screen_height);
 
-		canvas = vm_graphic_create_canvas_cf(VM_GRAPHIC_COLOR_FORMAT_16, 160, 144);
-		canvas_buf = vm_graphic_get_canvas_buffer(canvas) + VM_CANVAS_DATA_OFFSET;
-		layer_hdl[1] = vm_graphic_create_layer_cf(
-			VM_GRAPHIC_COLOR_FORMAT_16, screen_width/2 - 80, screen_height/2 - 72, 
-			160, 144, (vm_graphic_color_argb *)VM_NO_TRANS_COLOR, VM_BUF, canvas_buf, 160*144*2
-		);
-		break;
-		
-	case VM_MSG_PAINT: {
-		// Screen clearing is handled by the paint event, so it's only done when necessary
-		// Rest of the rendering will be handled by the draw_frame timer
-		color.vm_color_565 = VM_COLOR_BLACK;
-		vm_graphic_setcolor(&color);
-		vm_graphic_fill_rect_ex(layer_hdl[0], 0, 0, screen_width, screen_height);
-		break;
-	}
-		
-	case VM_MSG_INACTIVE:	/* the message of application state from active to inactive */
-		if( layer_hdl[0] != -1 )
-			vm_graphic_delete_layer(layer_hdl[0]);
-		break;	
+			// Create second layer that is used for rendering the game. This
+			// layer is not drawn when in the menus.
+			init_canvas();
+			break;
+			
+		case VM_MSG_PAINT: {
+			// Screen clearing is handled by the paint event, so it's only done when necessary
+			// Rest of the rendering will be handled by the draw_frame timer
+			color.vm_color_565 = VM_COLOR_BLACK;
+			vm_graphic_setcolor(&color);
+			vm_graphic_fill_rect_ex(layer_hdl[0], 0, 0, screen_width, screen_height);
+			break;
+		}
+			
+		case VM_MSG_INACTIVE:
+			if( layer_hdl[0] != -1 )
+				vm_graphic_delete_layer(layer_hdl[0]);
+			break;	
 
-	case VM_MSG_QUIT:		/* the message of quit application */
-		if( layer_hdl[0] != -1 )
-			vm_graphic_delete_layer(layer_hdl[0]);
-		break;	
+		case VM_MSG_QUIT:
+			// This is where de-initialization tasks would be done, but they are
+			// unnecessary for MRE (all allocated memory is freed at once).
+			if( layer_hdl[0] != -1 )
+				vm_graphic_delete_layer(layer_hdl[0]);
+			break;	
 	}
 }

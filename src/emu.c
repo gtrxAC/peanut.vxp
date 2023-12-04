@@ -14,8 +14,6 @@ char fps_str[16];
 VMWCHAR message[32];
 int message_timer;
 
-const VMUINT16 palette[4] = {0xE77C, 0x9CF0, 0x52AC, 0x20A3};
-
 extern VMUINT8 *canvas_buf;
 extern VMINT layer_hdl[2];
 extern VMINT screen_width;
@@ -68,7 +66,7 @@ void gb_error(struct gb_s* gb, const enum gb_error_e err, const uint16_t addr) {
 
 void lcd_draw_line(struct gb_s *gb, const uint8_t pixels[160], const unsigned int line) {
 	for (int i = 0; i < 160; i++) {
-		((VMUINT16 *)canvas_buf)[160*line + i] = palette[pixels[i]];
+		((VMUINT16 *)canvas_buf)[160*line + i] = config->palette[pixels[i]];
 	}
 }
 
@@ -106,14 +104,14 @@ void handle_keyevt_emu(VMINT event, VMINT keycode) {
 	switch (event) {
 		case VM_KEY_EVENT_DOWN: {
 			switch (keycode) {
-				case VM_KEY_UP: case VM_KEY_NUM2: gb->direct.joypad_bits.up = 0; break;
-				case VM_KEY_LEFT: case VM_KEY_NUM4: gb->direct.joypad_bits.left = 0; break;
-				case VM_KEY_DOWN: case VM_KEY_NUM8: gb->direct.joypad_bits.down = 0; break;
-				case VM_KEY_RIGHT: case VM_KEY_NUM6: gb->direct.joypad_bits.right = 0; break;
-				case VM_KEY_RIGHT_SOFTKEY: case VM_KEY_NUM5: gb->direct.joypad_bits.a = 0; break;
-				case VM_KEY_LEFT_SOFTKEY: gb->direct.joypad_bits.b = 0; break;
-				case VM_KEY_STAR: gb->direct.joypad_bits.select = 0; break;
-				case VM_KEY_POUND: gb->direct.joypad_bits.start = 0; break;
+				case config->key_up: gb->direct.joypad_bits.up = 0; break;
+				case config->key_left: gb->direct.joypad_bits.left = 0; break;
+				case config->key_down: gb->direct.joypad_bits.down = 0; break;
+				case config->key_right: gb->direct.joypad_bits.right = 0; break;
+				case config->key_a: gb->direct.joypad_bits.a = 0; break;
+				case config->key_b: gb->direct.joypad_bits.b = 0; break;
+				case config->key_select: gb->direct.joypad_bits.select = 0; break;
+				case config->key_start: gb->direct.joypad_bits.start = 0; break;
 
 				case VM_KEY_NUM0:
 					set_state(ST_MENU);
@@ -151,7 +149,8 @@ void init_emu() {
 	gb = calloc(1, sizeof (struct gb_s));
 	log_write("Allocated GB state");
 	
-	// TODO: config loading
+	load_config();
+	gb->direct.interlace = config->interlace;
 }
 
 void load_rom(char *filename) {
