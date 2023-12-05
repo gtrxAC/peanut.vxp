@@ -38,13 +38,17 @@ peanut.vxp currently works on any phone with MRE 2.5 or above, those mostly bein
 4. Send the VXP file to your phone and open it from the file manager.
 
 ## Key bindings
-These are currently not configurable.
-* D-pad is d-pad. You can also use `2`, `4`, `6`, `8`.
-* Left softkey: B
-* Right softkey or `5`: A
-* `*`: Select
-* `#`: Start
-* `0`: Show menu
+Key bindings can be configured in the Options menu, here are the defaults:
+| Game Boy | Keypad |
+| ----------- | ----------- |
+| Up | D-pad up
+| Down | D-pad down
+| Left | D-pad left
+| Right | D-pad right
+| A | Right softkey
+| B | Left softkey
+| Start | `#`
+| Select | `*`
 
 ## License
 `src/`, `Makefile`, and `sdk/build.py` are MIT licensed, other files may have their own licensing terms (such as headers and link libraries taken from the MRE SDK).
