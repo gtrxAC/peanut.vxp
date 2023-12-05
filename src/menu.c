@@ -103,8 +103,8 @@ void set_menu(Menu new_menu) {
             arrput(menu_list, "Load ROM");
             if (gb_inited) {
                 arrput(menu_list, "Reset");
-                // arrput(menu_list, "Load state (coming soon)");
-                // arrput(menu_list, "Save state (coming soon)");
+                // arrput(menu_list, "Load state");
+                // arrput(menu_list, "Save state");
             }
             arrput(menu_list, "Options");
             arrput(menu_list, "About");
@@ -133,6 +133,20 @@ void set_menu(Menu new_menu) {
                 arrput_ucs2(fileinfo.filename);
             }
             vm_find_close(find_handle);
+            break;
+        }
+
+        // Load/save state menus use malloc'ed strings
+        case MENU_LOAD_STATE: {
+            // for (int i = 0; i < 10; i++) {
+            //     char 
+	        //     if (vm_file_get_attributes(ucs2_str) != -1) {
+            // }
+            break;
+        }
+
+        case MENU_SAVE_STATE: {
+
             break;
         }
 
@@ -195,6 +209,12 @@ void menu_confirm() {
             else if (!strcmp(menu_list[menu_choice], "Reset")) {
                 gb_reset(gb);
                 set_state(ST_RUNNING);
+            }
+            else if (!strcmp(menu_list[menu_choice], "Load state")) {
+                set_menu(MENU_LOAD_STATE);
+            }
+            else if (!strcmp(menu_list[menu_choice], "Save state")) {
+                set_menu(MENU_SAVE_STATE);
             }
             else if (!strcmp(menu_list[menu_choice], "Options")) {
                 set_menu(MENU_OPTIONS);

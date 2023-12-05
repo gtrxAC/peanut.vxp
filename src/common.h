@@ -27,6 +27,7 @@ typedef enum State {
 #include "emu.h"
 #include "menu.h"
 #include "config.h"
+#include "keymapper.h"
 
 void set_state(State new_state);
 void init_canvas();

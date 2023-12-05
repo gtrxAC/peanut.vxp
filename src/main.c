@@ -16,6 +16,8 @@ VMWCHAR ucs2_str[128];
 
 State state = ST_MENU;
 
+extern int keymapper_cur_key;
+
 void set_state(State new_state) {
 	state = new_state;
 	switch (state) {
@@ -25,6 +27,11 @@ void set_state(State new_state) {
 			color.vm_color_565 = VM_COLOR_BLACK;
 			vm_graphic_setcolor(&color);
 			vm_graphic_fill_rect_ex(layer_hdl[0], 0, 0, screen_width, screen_height);
+			break;
+		}
+
+		case ST_KEY_MAPPER: {
+			keymapper_cur_key = 0;
 			break;
 		}
 
@@ -61,6 +68,7 @@ void init_canvas() {
 void draw_frame(VMINT tid) {
 	switch (state) {
 		case ST_MENU: draw_menu(); break;
+		case ST_KEY_MAPPER: draw_keymapper(); break;
 		case ST_RUNNING: draw_emu(); break;
 	}
 }
@@ -68,6 +76,7 @@ void draw_frame(VMINT tid) {
 void handle_keyevt(VMINT event, VMINT keycode) {
 	switch (state) {
 		case ST_MENU: handle_keyevt_menu(event, keycode); break;
+		case ST_KEY_MAPPER: handle_keyevt_keymapper(event, keycode); break;
 		case ST_RUNNING: handle_keyevt_emu(event, keycode); break;
 	}
 }

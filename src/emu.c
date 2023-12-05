@@ -88,8 +88,9 @@ void lcd_draw_line(struct gb_s *gb, const uint8_t pixels[160], const unsigned in
 }
 
 void write_save() {
+	if (!gb_inited) return;
 	int save_size = gb_get_save_size(gb);
-	if (gb_inited && save_size) {
+	if (save_size) {
 		write_from_addr_to_file(save_name, cart_ram, save_size);
 		log_write("Wrote save file");
 	}
@@ -160,14 +161,6 @@ void handle_keyevt_emu(VMINT event, VMINT keycode) {
 			else if (keycode == config->key_b) gb->direct.joypad_bits.b = 1;
 			else if (keycode == config->key_start) gb->direct.joypad_bits.start = 1;
 			else if (keycode == config->key_select) gb->direct.joypad_bits.select = 1;
-			// gb->direct.joypad_bits.up = 1;
-			// gb->direct.joypad_bits.left = 1;
-			// gb->direct.joypad_bits.down = 1;
-			// gb->direct.joypad_bits.right = 1;
-			// gb->direct.joypad_bits.a = 1;
-			// gb->direct.joypad_bits.b = 1;
-			// gb->direct.joypad_bits.select = 1;
-			// gb->direct.joypad_bits.start = 1;
 			break;
 		}
 
