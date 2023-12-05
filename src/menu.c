@@ -152,7 +152,7 @@ void set_menu(Menu new_menu) {
                 case 4: arrput(menu_list, "Palette: Crimson"); break;
                 default: arrput(menu_list, "Palette: Unknown"); break;
             }
-            // arrput(menu_list, "Key mappings");
+            arrput(menu_list, "Key mappings");
             // arrput(menu_list, "Rotation");
             break;
         }
@@ -238,6 +238,9 @@ void menu_confirm() {
                 save_config();
                 set_menu(MENU_OPTIONS);
                 menu_choice = 2;
+            }
+            else if (!strcmp(menu_list[menu_choice], "Key mappings")) {
+                set_state(ST_KEY_MAPPER);
             }
             break;
             

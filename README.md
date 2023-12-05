@@ -11,12 +11,14 @@ Game Boy emulator based on [Peanut-GB](https://github.com/deltabeard/Peanut-GB) 
 * Save states are not supported.
 
 ## Compatibility
-peanut.vxp currently works on any phone with MRE 3, those mostly being Nokia and Alcatel phones released since around 2014. Support for older devices is planned but currently not possible.
+peanut.vxp currently works on any phone with MRE 2.5 or above, those mostly being Nokia and Alcatel phones released since around 2014. Support for older devices is planned but currently not possible.
 | Phone | Status |
 | ----------- | ----------- |
-| Alcatel 2005x | Works, full speed
-| Alcatel 3040 | Works, full speed, touch not supported
-| Nokia 215<br>Likely other S30+ phones | Works, full speed
+| Alcatel 2005x | Works
+| Alcatel 3040 | Works, touch not supported
+| MyPhone T29 TV Duo | Works, touch not supported
+| Nokia 215<br>Likely other S30+ phones | Works
+| Starmobile B506 | Works
 | Alcatel A392CC | Crash
 | Doro PhoneEasy 530X<br>Likely other Doro phones | Crash
 | Logic M5 | Crash

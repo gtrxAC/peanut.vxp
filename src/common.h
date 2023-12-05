@@ -16,17 +16,13 @@
 #include "stb_ds.h"
 #include "util.h"
 
+#define PALETTE_COUNT 5
+
 typedef enum State {
 	ST_MENU,
-	ST_RUNNING
+	ST_RUNNING,
+    ST_KEY_MAPPER
 } State;
-
-typedef enum Menu {
-    MENU_MAIN,
-    MENU_FILE_PICKER,
-    MENU_OPTIONS,
-    MENU_ABOUT
-} Menu;
 
 #include "emu.h"
 #include "menu.h"
@@ -34,5 +30,3 @@ typedef enum Menu {
 
 void set_state(State new_state);
 void init_canvas();
-
-#define PALETTE_COUNT 5
