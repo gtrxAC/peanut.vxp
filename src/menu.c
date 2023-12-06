@@ -90,8 +90,6 @@ void arrput_ucs2(VMWSTR item) {
     arrput(menu_list, item_ascii);
 }
 
-char memstat_str[3][32];
-
 void set_menu(Menu new_menu) {
     menu = new_menu;
     menu_choice = 0;

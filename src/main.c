@@ -5,7 +5,11 @@
 
 VMINT layer_hdl[2];
 VMINT screen_width;
-VMINT screen_height;
+// screen_height is the height which is used for the app UI (game and menus), 
+// may be lower than screen_full_height if touch mode is enabled (bottom of the
+// screen has the touch controls)
+VMINT screen_height;       
+VMINT screen_full_height;  // Actual screen height
 vm_graphic_color color;
 
 VMINT canvas;
@@ -15,6 +19,7 @@ VMUINT8 *canvas_buf;
 VMWCHAR ucs2_str[128];
 
 State state = ST_MENU;
+VMBOOL touch_mode;
 
 extern int keymapper_cur_key;
 
@@ -66,6 +71,34 @@ void init_canvas() {
 }
 
 void draw_frame(VMINT tid) {
+	if (touch_mode) {
+		color.vm_color_565 = VM_COLOR_BLACK;
+		vm_graphic_setcolor(&color);
+		vm_graphic_fill_rect_ex(layer_hdl[0], 0, screen_height, screen_width, screen_full_height);
+
+		int touch_area_height = screen_full_height - screen_height;
+		int cell_width = screen_width/4;
+		int cell_height = touch_area_height/3;
+	
+		color.vm_color_565 = VM_COLOR_WHITE;
+		vm_graphic_setcolor(&color);
+
+		VMWSTR key_labels[12] = {
+			u"-", u"Up", u"-", u"A",
+			u"Lt", u"", u"Rt", u"B",
+			u"Menu", u"Dn", u"Sel", u"St"
+		};
+
+		for (int y = 0; y < 3; y++) {
+			for (int x = 0; x < 4; x++) {
+				int draw_x = x*cell_width;
+				int draw_y = screen_height + y*cell_height;
+				vm_graphic_rect_ex(layer_hdl[0], draw_x, draw_y, cell_width, cell_height);
+				vm_graphic_textout_to_layer(layer_hdl[0], draw_x + 2, draw_y + 2, key_labels[y*4 + x], 256);
+			}
+		}
+	}
+
 	switch (state) {
 		case ST_MENU: draw_menu(); break;
 		case ST_KEY_MAPPER: draw_keymapper(); break;
@@ -73,7 +106,11 @@ void draw_frame(VMINT tid) {
 	}
 }
 
+void handle_penevt(VMINT event, VMINT x, VMINT y);
+
 void handle_keyevt(VMINT event, VMINT keycode) {
+	if (keycode == VM_KEY_NUM1) handle_penevt(VM_PEN_EVENT_TAP, 0, 0);
+
 	switch (state) {
 		case ST_MENU: handle_keyevt_menu(event, keycode); break;
 		case ST_KEY_MAPPER: handle_keyevt_keymapper(event, keycode); break;
@@ -81,8 +118,59 @@ void handle_keyevt(VMINT event, VMINT keycode) {
 	}
 }
 
+void handle_penevt(VMINT event, VMINT x, VMINT y) {
+	// Activate touch mode when pen is pressed for the first time.
+	if (!touch_mode) {
+		touch_mode = VM_TRUE;
+		switch (config->scale) {
+			case SCALE_1X: screen_height = 160; break;
+			case SCALE_1_5X: screen_height = 240; break;
+			case SCALE_2X: screen_height = 320; break;
+		}
+		init_canvas();
+		return;
+	}
+
+	// Map pen events to key events.
+	int key_event;
+	switch (event) {
+		case VM_PEN_EVENT_TAP: key_event = VM_KEY_EVENT_DOWN; break;
+		case VM_PEN_EVENT_RELEASE: key_event = VM_KEY_EVENT_UP; break;
+		default: return;
+	}
+
+	// Touch area is divided into a 4×3 grid.
+	// Each cell simply corresponds to a key event for a specific key.
+	int touch_area_height = screen_full_height - screen_height;
+	int cell_width = screen_width/4;
+	int cell_height = touch_area_height/3;
+
+	y -= screen_width;
+	if (y < 0) return;
+
+	x /= cell_width;
+	y /= cell_height;
+
+	int key;
+	switch (y*4 + x) {
+		case 0: key = VM_KEY_LEFT_SOFTKEY; break;
+		case 1: key = config->key_up; break;
+		case 2: key = VM_KEY_RIGHT_SOFTKEY; break;
+		case 3: key = config->key_a; break;
+		case 4: key = config->key_left; break;
+		case 5: return;
+		case 6: key = config->key_right; break;
+		case 7: key = config->key_b; break;
+		case 8: key = VM_KEY_NUM0; break;
+		case 9: key = config->key_down; break;
+		case 10: key = config->key_select; break;
+		case 11: key = config->key_start; break;
+	}
+	handle_keyevt(key_event, key);
+}
+
 void handle_sysevt(VMINT message, VMINT param);
-void handle_penevt(VMINT event, VMINT x, VMINT y) { }
+void handle_penevt(VMINT event, VMINT x, VMINT y);
 
 void vm_main(void) {
 	log_init();
@@ -120,7 +208,8 @@ void handle_sysevt(VMINT message, VMINT param) {
 			// used for the menus, and is usually a static black background when
 			// in-game, except for pop-up messages. 
 			screen_width = vm_graphic_get_screen_width();
-			screen_height = vm_graphic_get_screen_height();
+			screen_full_height = vm_graphic_get_screen_height();
+			screen_height = screen_full_height;
 			layer_hdl[0] = vm_graphic_create_layer(0, 0, screen_width, screen_height, VM_NO_TRANS_COLOR);
 			vm_graphic_set_clip(0, 0, screen_width, screen_height);
 

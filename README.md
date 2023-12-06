@@ -15,8 +15,8 @@ peanut.vxp currently works on any phone with MRE 2.5 or above, those mostly bein
 | Phone | Status |
 | ----------- | ----------- |
 | Alcatel 2005x | Works
-| Alcatel 3040 | Works, touch not supported
-| MyPhone T29 TV Duo | Works, touch not supported
+| Alcatel 3040 | Works, touch untested
+| MyPhone T29 TV Duo | Works, touch untested
 | Nokia 215<br>Likely other S30+ phones | Works
 | Starmobile B506 | Works
 | Alcatel A392CC | Crash
