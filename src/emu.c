@@ -280,15 +280,10 @@ void init_rtc() {
 		mre_time.day += days_in_month[i];
 	}
 
-	// Create a Peanut-GB compatible 'struct tm' counterpart from the MRE time.
-	// MRE time values begin from 1, C time values begin from 0.
-	struct tm c_time = {
-		mre_time.sec - 1,
-		mre_time.min - 1,
-		mre_time.hour - 1,
-		0, 0, 0, 0, // unused fields
-		mre_time.day - 1
-	};
-	gb_set_rtc(gb, &c_time);
+	gb->rtc_bits.sec = mre_time.sec - 1;
+	gb->rtc_bits.min = mre_time.min - 1;
+	gb->rtc_bits.hour = mre_time.hour - 1;
+	gb->rtc_bits.yday = (mre_time.day - 1) & 0xFF;
+	gb->rtc_bits.high = ((mre_time.day - 1) & 0xFF00) >> 8;
 	log_write("Set RTC time");
 }
