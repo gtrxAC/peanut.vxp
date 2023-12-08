@@ -11,6 +11,7 @@ extern struct gb_s *gb;
 
 extern State state;
 extern VMWCHAR ucs2_str[128];
+extern VMBOOL touch_mode;
 
 extern const VMUINT16 palettes[PALETTE_COUNT][4];
 
@@ -58,7 +59,7 @@ void draw_menu() {
     // Draw softkeys
     color.vm_color_565 = 0x1082;
     vm_graphic_setcolor(&color);
-    vm_graphic_fill_rect_ex(layer_hdl[0], 0, screen_height - row_height - 2, screen_width, row_height + 2);
+    vm_graphic_fill_rect_ex(layer_hdl[0], 0, screen_height - row_height - 2, screen_width, row_height + 1);
 
     color.vm_color_565 = 0XD6DA;
     vm_graphic_setcolor(&color);
@@ -85,7 +86,8 @@ void draw_menu() {
 // _____________________________________________________________________________
 //
 void arrput_ucs2(VMWSTR item) {
-    char *item_ascii = malloc(vm_wstrlen(item) + 1);
+    char *item_ascii = gx_malloc(vm_wstrlen(item) + 1);
+    if (!item_ascii) return;
     vm_ucs2_to_ascii(item_ascii, vm_wstrlen(item) + 1, item);
     arrput(menu_list, item_ascii);
 }
@@ -118,7 +120,8 @@ void set_menu(Menu new_menu) {
             VMINT find_result;
 
             if (find_handle < 0) {
-                char *no_files_str = malloc(16);
+                char *no_files_str = gx_malloc(16);
+                if (!no_files_str) break;
                 strcpy(no_files_str, "No files found.");
                 arrput(menu_list, no_files_str);
                 break;
@@ -150,6 +153,7 @@ void set_menu(Menu new_menu) {
 
         case MENU_OPTIONS: {
             arrput(menu_list, gb->direct.interlace ? "Interlacing: ON" : "Interlacing: OFF");
+            arrput(menu_list, config->show_fps ? "FPS counter: ON" : "FPS counter: OFF");
             switch (config->scale) {
                 case SCALE_1X: arrput(menu_list, "Scaling: 1x"); break;
                 case SCALE_1_5X: arrput(menu_list, "Scaling: 1.5x (not impl'd)"); break;
@@ -165,6 +169,9 @@ void set_menu(Menu new_menu) {
                 default: arrput(menu_list, "Palette: Unknown"); break;
             }
             arrput(menu_list, "Key mappings");
+            if (touch_mode) {
+                arrput(menu_list, config->basic_touch_labels ? "Touch buttons: Basic" : "Touch buttons: Unicode");
+            }
             // arrput(menu_list, "Rotation");
             break;
         }
@@ -239,13 +246,19 @@ void menu_confirm() {
                 save_config();
                 set_menu(MENU_OPTIONS);
             }
+            if (!strncmp(menu_list[menu_choice], "FPS counter", 11)) {
+                config->show_fps = !config->show_fps;
+                save_config();
+                set_menu(MENU_OPTIONS);
+                menu_choice = 1;
+            }
             else if (!strncmp(menu_list[menu_choice], "Scaling", 7)) {
                 config->scale++;
                 if (config->scale == SCALE_COUNT) config->scale = SCALE_1X;
                 init_canvas();
                 save_config();
                 set_menu(MENU_OPTIONS);
-                menu_choice = 1;
+                menu_choice = 2;
             }
             else if (!strncmp(menu_list[menu_choice], "Palette", 7)) {
                 config->palette_choice++;
@@ -255,10 +268,16 @@ void menu_confirm() {
                 }
                 save_config();
                 set_menu(MENU_OPTIONS);
-                menu_choice = 2;
+                menu_choice = 3;
             }
             else if (!strcmp(menu_list[menu_choice], "Key mappings")) {
                 set_state(ST_KEY_MAPPER);
+            }
+            else if (!strncmp(menu_list[menu_choice], "Touch buttons", 13)) {
+                config->basic_touch_labels = !config->basic_touch_labels;
+                set_menu(MENU_OPTIONS);
+                menu_choice = 5;
+                draw_touch_area();
             }
             break;
             
@@ -275,11 +294,17 @@ void menu_confirm() {
 //
 void menu_up(int count) {
     menu_choice -= count;
-    if (menu_choice < 0) menu_choice = arrlen(menu_list) - 1;
+    if (menu_choice < 0) {
+        if (count == 1) menu_choice = arrlen(menu_list) - 1;
+        else menu_choice = 0;
+    }
 }
 void menu_down(int count) {
     menu_choice += count;
-    if (menu_choice >= arrlen(menu_list)) menu_choice = 0;
+    if (menu_choice >= arrlen(menu_list)) {
+        if (count == 1) menu_choice = 0;
+        else menu_choice = arrlen(menu_list) - 1;
+    }
 }
 
 void handle_keyevt_menu(VMINT event, VMINT keycode) {

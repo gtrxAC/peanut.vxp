@@ -7,12 +7,8 @@ char *save_name;
 VMUINT8 *rom_data;
 VMUINT8 *cart_ram;
 
-int show_fps;
 int tick_count;
-char fps_str[16];
-
-VMWCHAR message[32];
-int message_timer;
+char fps_str[8];
 
 int last_rtc_tick;
 
@@ -24,20 +20,6 @@ extern vm_graphic_color color;
 
 extern State state;
 extern VMWCHAR ucs2_str[128];
-
-// _____________________________________________________________________________
-//
-void set_message(char *msg) {
-	vm_ascii_to_ucs2(message, 64, msg);
-	message_timer = 60;
-
-	color.vm_color_565 = VM_COLOR_BLACK;
-	vm_graphic_setcolor(&color);
-	vm_graphic_fill_rect_ex(layer_hdl[0], 0, 0, screen_width, 24);
-	color.vm_color_565 = 0xF7F0;
-	vm_graphic_setcolor(&color);
-	vm_graphic_textout_to_layer(layer_hdl[0], 2, 2, message, 64);
-}
 
 // _____________________________________________________________________________
 //
@@ -102,14 +84,7 @@ void write_save() {
 // _____________________________________________________________________________
 //
 void draw_emu() {
-    if (show_fps) tick_count = vm_get_tick_count();
-
-    if (message_timer == 0) {
-        color.vm_color_565 = VM_COLOR_BLACK;
-        vm_graphic_setcolor(&color);
-        vm_graphic_fill_rect_ex(layer_hdl[0], 0, 0, screen_width, 24);
-    }
-    message_timer--;
+    if (config->show_fps) tick_count = vm_get_tick_count();
 
     gb_run_frame(gb);
     gb_run_frame(gb);
@@ -117,9 +92,17 @@ void draw_emu() {
 
 	int new_tick_count = vm_get_tick_count();
 
-    if (show_fps) {
-        sprintf(fps_str, "%d fps", (int) 1000 / (new_tick_count - tick_count));
-        set_message(fps_str);
+    if (config->show_fps) {
+        sprintf(fps_str, "%d", (int) 1000 / (new_tick_count - tick_count));
+        vm_ascii_to_ucs2(ucs2_str, 256, fps_str);
+
+		color.vm_color_565 = VM_COLOR_BLACK;
+		vm_graphic_setcolor(&color);
+		vm_graphic_fill_rect_ex(layer_hdl[0], 1, 1, 50, vm_graphic_get_character_height());
+
+		color.vm_color_565 = VM_COLOR_WHITE;
+		vm_graphic_setcolor(&color);
+		vm_graphic_textout_to_layer(layer_hdl[0], 1, 1, ucs2_str, 256);
     }
 	if (new_tick_count >= last_rtc_tick + 1000) {
 		gb_tick_rtc(gb);
@@ -173,6 +156,15 @@ void handle_keyevt_emu(VMINT event, VMINT keycode) {
 //  Emulator initialization and ROM loading
 // _____________________________________________________________________________
 //
+char *replace_file_ext(char *filename, char *new_ext) {
+	char *result = TextReplace(filename, ".gbc", new_ext);
+	if (!strcmp(filename, result)) {
+		free(result);
+		result = TextReplace(filename, ".gb", new_ext);
+	}
+	return result;
+}
+
 // This initializes the emulator just enough so that its settings are loaded
 // and can be modified. Further loading happens in load_rom.
 void init_emu() {
@@ -190,6 +182,7 @@ void load_rom(char *filename) {
 	// Load ROM data
 	if (rom_data) free(rom_data);
 	read_from_file_to_addr(filename, (void **)&rom_data);
+	if (!rom_data) return;
 	log_write("Loaded ROM");
 
 	// Init emulator
@@ -201,11 +194,7 @@ void load_rom(char *filename) {
 
 	// Get save name based on ROM name (replace .gbc or .gb suffix)
 	if (save_name) free(save_name);
-	save_name = TextReplace(filename, ".gbc", ".sav");
-	if (!strcmp(filename, save_name)) {
-		free(save_name);
-		save_name = TextReplace(filename, ".gb", ".sav");
-	}
+	save_name = replace_file_ext(filename, ".sav");
 	log_write("Created save file name");
 
 	// Get full path of save name (as UCS2 encoded string)
@@ -218,6 +207,7 @@ void load_rom(char *filename) {
 	if (vm_file_get_attributes(ucs2_str) != -1) {
 		log_write("Save file found, loading it");
 		read_from_file_to_addr(save_name, (void **)&cart_ram);
+		if (!cart_ram) return;
 	} else {
 		if (gb_get_save_size(gb)) {
 			log_write("Save file not found, creating it");
@@ -255,6 +245,7 @@ void init_rtc() {
 		mre_time.sec - 1,
 		mre_time.min - 1,
 		mre_time.hour - 1,
+		0, 0, 0, 0, // unused fields
 		mre_time.day - 1
 	};
 	gb_set_rtc(gb, &c_time);

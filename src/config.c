@@ -25,7 +25,9 @@ const VMUINT16 palettes[PALETTE_COUNT][4] = {
 };
 
 void default_config() {
-    config = malloc(sizeof(Config));
+    config = gx_malloc(sizeof(Config));
+    if (!config) return;
+
     config->version = 1;
     config->interlace = VM_FALSE;
 
@@ -51,6 +53,9 @@ void default_config() {
     config->key_b = VM_KEY_LEFT_SOFTKEY;
     config->key_select = VM_KEY_STAR;
     config->key_start = VM_KEY_POUND;
+
+    config->show_fps = VM_FALSE;
+    config->basic_touch_labels = VM_FALSE;
     save_config();
 }
 
@@ -60,6 +65,7 @@ void load_config() {
 
     if (vm_file_get_attributes(ucs2_str) != -1) {
         read_from_file_to_addr("peanut.cfg", (void **)&config);
+        if (!config) return;
         log_write("Loaded configuration file");
     } else {
         default_config();

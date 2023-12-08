@@ -23,6 +23,9 @@ typedef struct Config {
 
     int key_up, key_down, key_left, key_right;
     int key_a, key_b, key_start, key_select;
+
+    VMBOOL show_fps;
+    VMBOOL basic_touch_labels;
 } Config;
 
 void default_config();

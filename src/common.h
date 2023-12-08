@@ -31,3 +31,4 @@ typedef enum State {
 
 void set_state(State new_state);
 void init_canvas();
+void draw_touch_area();

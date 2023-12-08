@@ -1,5 +1,6 @@
 #pragma once
 
+void *gx_malloc(int size);
 void log_init();
 void log_write(char *str);
 

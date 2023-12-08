@@ -45,25 +45,22 @@ void draw_keymapper() {
 // _____________________________________________________________________________
 //
 void handle_keyevt_keymapper(VMINT event, VMINT keycode) {
-	switch (event) {
-		case VM_KEY_EVENT_DOWN: {
-			switch (keymapper_cur_key) {
-				case 0: config->key_up = keycode; break;
-				case 1: config->key_down = keycode; break;
-				case 2: config->key_left = keycode; break;
-				case 3: config->key_right = keycode; break;
-				case 4: config->key_a = keycode; break;
-				case 5: config->key_b = keycode; break;
-				case 6: config->key_start = keycode; break;
-				case 7: config->key_select = keycode; break;
-			}
-			keymapper_cur_key++;
-			if (keymapper_cur_key > 7) {
-				save_config();
-				set_state(ST_MENU);
-			}
-		}
-
-		default: break;
+	if (event != VM_KEY_EVENT_DOWN) return;
+	if (keycode == VM_KEY_NUM0) return;  // 0 is reserved for menu
+	
+	switch (keymapper_cur_key) {
+		case 0: config->key_up = keycode; break;
+		case 1: config->key_down = keycode; break;
+		case 2: config->key_left = keycode; break;
+		case 3: config->key_right = keycode; break;
+		case 4: config->key_a = keycode; break;
+		case 5: config->key_b = keycode; break;
+		case 6: config->key_start = keycode; break;
+		case 7: config->key_select = keycode; break;
+	}
+	keymapper_cur_key++;
+	if (keymapper_cur_key > 7) {
+		save_config();
+		set_state(ST_MENU);
 	}
 }
