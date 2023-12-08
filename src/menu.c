@@ -103,8 +103,8 @@ void set_menu(Menu new_menu) {
             arrput(menu_list, "Load ROM");
             if (gb_inited) {
                 arrput(menu_list, "Reset");
-                // arrput(menu_list, "Load state");
-                // arrput(menu_list, "Save state");
+                arrput(menu_list, "Load state");
+                arrput(menu_list, "Save state");
             }
             arrput(menu_list, "Options");
             arrput(menu_list, "About");
@@ -138,16 +138,13 @@ void set_menu(Menu new_menu) {
         }
 
         // Load/save state menus use malloc'ed strings
-        case MENU_LOAD_STATE: {
-            // for (int i = 0; i < 10; i++) {
-            //     char 
-	        //     if (vm_file_get_attributes(ucs2_str) != -1) {
-            // }
-            break;
-        }
-
-        case MENU_SAVE_STATE: {
-
+        case MENU_LOAD_STATE: case MENU_SAVE_STATE: {
+            for (int i = 0; i < 10; i++) {
+                char *line = gx_malloc(16);
+                if (!line) break;
+                sprintf(line, "Slot %d%s", i + 1, state_exists(i) ? "" : " (empty)");
+                arrput(menu_list, line);
+            }
             break;
         }
 
@@ -188,8 +185,9 @@ void set_menu(Menu new_menu) {
 void menu_back() {
     switch (menu) {
         case MENU_MAIN: if (gb_inited) set_state(ST_RUNNING); break;
-        case MENU_FILE_PICKER: {
-            // Free memory used by ROM file names
+
+        // These menus use malloc'ed strings for the options
+        case MENU_FILE_PICKER: case MENU_LOAD_STATE: case MENU_SAVE_STATE: {
             for (int i = 0; i < arrlen(menu_list); i++) {
                 free(menu_list[i]);
             }
@@ -232,11 +230,26 @@ void menu_confirm() {
 
         case MENU_FILE_PICKER:
             load_rom(menu_list[menu_choice]);
-
-            // Free memory used by ROM file names
             for (int i = 0; i < arrlen(menu_list); i++) {
                 free(menu_list[i]);
             }
+            break;
+
+        case MENU_LOAD_STATE:
+            if (!state_exists(menu_choice)) break;
+            load_state(menu_choice);
+            for (int i = 0; i < arrlen(menu_list); i++) {
+                free(menu_list[i]);
+            }
+            set_state(ST_RUNNING);
+            break;
+
+        case MENU_SAVE_STATE:
+            save_state(menu_choice);
+            for (int i = 0; i < arrlen(menu_list); i++) {
+                free(menu_list[i]);
+            }
+            set_menu(MENU_MAIN);
             break;
             
         case MENU_OPTIONS:

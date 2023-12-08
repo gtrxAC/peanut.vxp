@@ -150,21 +150,58 @@ void handle_keyevt_emu(VMINT event, VMINT keycode) {
 		default: break;
 	}
 }
+// _____________________________________________________________________________
+//
+//  Save states
+// _____________________________________________________________________________
+//
+char *get_state_name(int num) {
+	char extension[8];
+	sprintf(extension, ".ss%d", num);
+	return TextReplace(save_name, ".sav", extension);
+}
+
+VMBOOL state_exists(int num) {
+	char *state_name = get_state_name(num);
+	if (!state_name) return VM_FALSE;
+
+	VMCHAR state_name_full[128];
+	sprintf(state_name_full, "e:\\peanutvxp\\%s", state_name);
+	vm_ascii_to_ucs2(ucs2_str, 256, state_name_full);
+	
+	VMBOOL result = vm_file_get_attributes(ucs2_str) != -1;
+	free(state_name);
+	return result;
+}
+
+void load_state(int num) {
+	char *state_name = get_state_name(num);
+	if (!state_name) return;
+
+	read_from_file_to_addr(state_name, (void **)&gb);
+
+	// Re-assign frontend functions to the loaded gb structure
+	gb->gb_rom_read = gb_rom_read;
+	gb->gb_cart_ram_read = gb_cart_ram_read;
+	gb->gb_cart_ram_write = gb_cart_ram_write;
+	gb->gb_error = gb_error;
+	gb->display.lcd_draw_line = lcd_draw_line;
+
+	free(state_name);
+}
+
+void save_state(int num) {
+	char *state_name = get_state_name(num);
+	if (!state_name) return;
+	write_from_addr_to_file(state_name, gb, sizeof(struct gb_s));
+	free(state_name);
+}
 
 // _____________________________________________________________________________
 //
 //  Emulator initialization and ROM loading
 // _____________________________________________________________________________
 //
-char *replace_file_ext(char *filename, char *new_ext) {
-	char *result = TextReplace(filename, ".gbc", new_ext);
-	if (!strcmp(filename, result)) {
-		free(result);
-		result = TextReplace(filename, ".gb", new_ext);
-	}
-	return result;
-}
-
 // This initializes the emulator just enough so that its settings are loaded
 // and can be modified. Further loading happens in load_rom.
 void init_emu() {
@@ -194,7 +231,11 @@ void load_rom(char *filename) {
 
 	// Get save name based on ROM name (replace .gbc or .gb suffix)
 	if (save_name) free(save_name);
-	save_name = replace_file_ext(filename, ".sav");
+	save_name = TextReplace(filename, ".gbc", ".sav");
+	if (!strcmp(filename, save_name)) {
+		free(save_name);
+		save_name = TextReplace(filename, ".gb", ".sav");
+	}
 	log_write("Created save file name");
 
 	// Get full path of save name (as UCS2 encoded string)
@@ -235,7 +276,7 @@ void init_rtc() {
 	if (result == -1) return;
 
 	// Calculate day of year (0-365).
-	for (int i = 1; i < mre_time.mon; i++) {
+	for (int i = 0; i < mre_time.mon - 1; i++) {
 		mre_time.day += days_in_month[i];
 	}
 

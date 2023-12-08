@@ -14,6 +14,11 @@ void draw_emu();
 
 void handle_keyevt_emu(VMINT event, VMINT keycode);
 
+char *get_state_name(int num);
+VMBOOL state_exists(int num);
+void load_state(int num);
+void save_state(int num);
+
 void init_emu();
 void load_rom(char *filename);
 void init_rtc();
