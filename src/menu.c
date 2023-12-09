@@ -229,6 +229,7 @@ void menu_confirm() {
         }
 
         case MENU_FILE_PICKER:
+            if (!strcmp(menu_list[menu_choice], "No files found.")) break;
             load_rom(menu_list[menu_choice]);
             for (int i = 0; i < arrlen(menu_list); i++) {
                 free(menu_list[i]);
@@ -288,6 +289,7 @@ void menu_confirm() {
             }
             else if (!strncmp(menu_list[menu_choice], "Touch buttons", 13)) {
                 config->basic_touch_labels = !config->basic_touch_labels;
+                save_config();
                 set_menu(MENU_OPTIONS);
                 menu_choice = 5;
                 draw_touch_area();

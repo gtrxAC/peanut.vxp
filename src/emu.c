@@ -245,6 +245,7 @@ void load_rom(char *filename) {
 	log_write("Created save file path");
 
 	// Load or create save file
+	if (cart_ram) free(cart_ram);
 	if (vm_file_get_attributes(ucs2_str) != -1) {
 		log_write("Save file found, loading it");
 		read_from_file_to_addr(save_name, (void **)&cart_ram);

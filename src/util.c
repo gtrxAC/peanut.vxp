@@ -49,7 +49,10 @@ int read_from_file_to_addr(const char* path_, void** addr) {
 	}
 	vm_file_getfilesize(f, &size);
 	*addr = gx_malloc(size);
-    if (!addr) return 0;
+    if (!addr) {
+        *addr = 0;
+        return 0;
+    }
 	vm_file_read(f, *addr, size, &red);
 	vm_file_close(f);
 	return size;

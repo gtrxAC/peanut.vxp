@@ -122,7 +122,12 @@ void init_canvas() {
 
 	// Create new canvas and layer with the appropriate size
 	canvas = vm_graphic_create_canvas_cf(VM_GRAPHIC_COLOR_FORMAT_16, canvas_width, canvas_height);
-	if (canvas < 0) show_error_and_exit("Out of memory!");
+	if (canvas < 0) {
+		show_error_and_exit("Out of memory!");
+		config->scale = SCALE_1X;
+		save_config();
+		init_canvas();
+	}
 	canvas_buf = vm_graphic_get_canvas_buffer(canvas) + VM_CANVAS_DATA_OFFSET;
 	layer_hdl[1] = vm_graphic_create_layer_cf(
 		VM_GRAPHIC_COLOR_FORMAT_16,
@@ -145,8 +150,6 @@ void draw_frame(VMINT tid) {
 void handle_penevt(VMINT event, VMINT x, VMINT y);
 
 void handle_keyevt(VMINT event, VMINT keycode) {
-	if (keycode == VM_KEY_NUM1 && !touch_mode) handle_penevt(VM_PEN_EVENT_TAP, 0, 0);
-
 	switch (state) {
 		case ST_MENU: handle_keyevt_menu(event, keycode); break;
 		case ST_KEY_MAPPER: handle_keyevt_keymapper(event, keycode); break;
@@ -205,6 +208,8 @@ void handle_sysevt(VMINT message, VMINT param);
 void handle_penevt(VMINT event, VMINT x, VMINT y);
 
 void vm_main(void) {
+	vm_file_mkdir(u"e:\\peanutvxp");
+	
 	log_init();
 	log_write("Started logging");
 	
