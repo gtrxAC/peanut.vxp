@@ -38,7 +38,7 @@ peanut.vxp currently works on any phone with MRE 2.5 or above, those mostly bein
 5. Send the VXP file to your phone and open it from the file manager.
 
 ## Key bindings
-Key bindings can be configured in the Options menu, here are the defaults:
+Key bindings can be configured in the Options menu. While playing, the menu can be accessed with the `0` key, or with the `Menu` virtual button when using a touchscreen. Here are the default key bindings:
 | Game Boy | Keypad |
 | ----------- | ----------- |
 | Up | D-pad up

@@ -10,8 +10,6 @@ VMUINT8 *cart_ram;
 int tick_count;
 char fps_str[8];
 
-int last_rtc_tick;
-
 extern VMUINT8 *canvas_buf;
 extern VMINT layer_hdl[2];
 extern VMINT screen_width;
@@ -35,7 +33,7 @@ VMUINT8 gb_cart_ram_read(struct gb_s *gb, const uint_fast32_t addr) {
 }
 
 void gb_cart_ram_write(struct gb_s *gb, const uint_fast32_t addr, const uint8_t val) {
-	cart_ram[addr] = val;
+	if (cart_ram) cart_ram[addr] = val;
 }
 
 void gb_error(struct gb_s* gb, const enum gb_error_e err, const uint16_t addr) {
@@ -90,24 +88,18 @@ void draw_emu() {
     gb_run_frame(gb);
     vm_graphic_flush_layer(layer_hdl, 2);
 
-	int new_tick_count = vm_get_tick_count();
-
     if (config->show_fps) {
-        sprintf(fps_str, "%d", (int) 1000 / (new_tick_count - tick_count));
-        vm_ascii_to_ucs2(ucs2_str, 256, fps_str);
-
 		color.vm_color_565 = VM_COLOR_BLACK;
 		vm_graphic_setcolor(&color);
 		vm_graphic_fill_rect_ex(layer_hdl[0], 1, 1, 50, vm_graphic_get_character_height());
 
 		color.vm_color_565 = VM_COLOR_WHITE;
 		vm_graphic_setcolor(&color);
+
+        sprintf(fps_str, "%d", (int) 1000 / (vm_get_tick_count() - tick_count));
+        vm_ascii_to_ucs2(ucs2_str, 256, fps_str);
 		vm_graphic_textout_to_layer(layer_hdl[0], 1, 1, ucs2_str, 256);
     }
-	if (new_tick_count >= last_rtc_tick + 1000) {
-		gb_tick_rtc(gb);
-		last_rtc_tick += 1000;
-	}
 }
 
 // _____________________________________________________________________________
@@ -206,7 +198,8 @@ void save_state(int num) {
 // and can be modified. Further loading happens in load_rom.
 void init_emu() {
 	if (gb) free(gb);
-	gb = calloc(1, sizeof (struct gb_s));
+	gb = gx_calloc(sizeof (struct gb_s));
+	if (!gb) return;
 	log_write("Allocated GB state");
 	
 	load_config();
@@ -217,7 +210,10 @@ void load_rom(char *filename) {
 	init_emu();
 
 	// Load ROM data
-	if (rom_data) free(rom_data);
+	if (rom_data) {
+		free(rom_data);
+		rom_data = 0;
+	}
 	read_from_file_to_addr(filename, (void **)&rom_data);
 	if (!rom_data) return;
 	log_write("Loaded ROM");
@@ -245,7 +241,10 @@ void load_rom(char *filename) {
 	log_write("Created save file path");
 
 	// Load or create save file
-	if (cart_ram) free(cart_ram);
+	if (cart_ram) {
+		free(cart_ram);
+		cart_ram = 0;
+	}
 	if (vm_file_get_attributes(ucs2_str) != -1) {
 		log_write("Save file found, loading it");
 		read_from_file_to_addr(save_name, (void **)&cart_ram);
@@ -253,38 +252,13 @@ void load_rom(char *filename) {
 	} else {
 		if (gb_get_save_size(gb)) {
 			log_write("Save file not found, creating it");
-			cart_ram = calloc(gb_get_save_size(gb), 1);
+			cart_ram = gx_calloc(gb_get_save_size(gb));
+			if (!cart_ram) return;
 		} else {
 			log_write("This game doesn't use save data");
 		}
 	}
 	log_write("Loaded/created save file");
 
-	init_rtc();
     set_state(ST_RUNNING);
-}
-
-// _____________________________________________________________________________
-//
-//  RTC initialization (MRE vm_time -> C struct tm)
-// _____________________________________________________________________________
-//
-const int days_in_month[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
-void init_rtc() {
-	vm_time_t mre_time;
-	int result = vm_get_time(&mre_time);
-	if (result == -1) return;
-
-	// Calculate day of year (0-365).
-	for (int i = 0; i < mre_time.mon - 1; i++) {
-		mre_time.day += days_in_month[i];
-	}
-
-	gb->rtc_bits.sec = mre_time.sec - 1;
-	gb->rtc_bits.min = mre_time.min - 1;
-	gb->rtc_bits.hour = mre_time.hour - 1;
-	gb->rtc_bits.yday = (mre_time.day - 1) & 0xFF;
-	gb->rtc_bits.high = ((mre_time.day - 1) & 0xFF00) >> 8;
-	log_write("Set RTC time");
 }

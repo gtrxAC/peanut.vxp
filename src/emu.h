@@ -21,4 +21,3 @@ void save_state(int num);
 
 void init_emu();
 void load_rom(char *filename);
-void init_rtc();

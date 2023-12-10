@@ -14,6 +14,12 @@ void *gx_malloc(int size) {
     return result;
 }
 
+void *gx_calloc(int size) {
+    void *result = vm_calloc(size);
+    if (!result) show_error_and_exit("Out of memory!");
+    return result;
+}
+
 void log_init() {
     vm_ascii_to_ucs2(ucs2_str, 256, "e:\\peanutvxp\\log.txt");
     log_file = vm_file_open(ucs2_str, MODE_CREATE_ALWAYS_WRITE, 0);
