@@ -33,8 +33,7 @@ peanut.vxp currently works on any phone with MRE 2.5 or above, those mostly bein
 ## How to use
 1. Download the VXP file from Releases, or compile it yourself by following the above steps.
 2. **Skip this step if you're not using Series 30+.** You'll need to sign the VXP file to your SIM card's IMSI. There are many ways to find your IMSI, [here](https://github.com/raspiduino/mre-sdk/discussions/1#discussioncomment-3571276) is one. Insert the IMSI and VXP into [this tool](https://vxpatch.luxferre.top/).
-3. Put ROM files on your phone's SD card in `E:\peanutvxp`. Note that this path may differ based on the phone's MRE implementation - for example on Series 30+, it's based on the location of the VXP file, so if you send the VXP via Bluetooth, it will go in `Received files`, and the ROMs will go in `Memory card/Received files/peanut/e/peanutvxp`.
-4. If the VXP file has a different name, rename it to `peanut.vxp`.
+3. Put ROM files on your phone's SD card in `E:\peanutvxp`. Note that the actual path may differ based on the phone's MRE implementation - usually it's the `peanutvxp` folder in the root of your SD card, but if not, you can follow step 4 and you'll find a config and log file in the correct directory.
 5. Send the VXP file to your phone and open it from the file manager.
 
 ## Key bindings
