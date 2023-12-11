@@ -51,13 +51,15 @@ void draw_touch_area() {
 	for (int y = 0; y < 3; y++) {
 		for (int x = 0; x < 4; x++) {
 			int i = y*4 + x;
-			// Don't show left/right softkeys when in game
-			if (state == ST_RUNNING && (i == 0 || i == 2)) continue;
+			// Don't show right softkey when in game (left softkey is replaced by speed-up)
+			if (state == ST_RUNNING && i == 2) continue;
 
 			// Don't show game buttons when in menus
 			if (state != ST_RUNNING && (i == 3 || i == 7 || i == 8 || i == 10 || i == 11)) continue;
 
 			VMWSTR label = (VMWSTR) (config->basic_touch_labels ? key_labels_basic : key_labels)[i];
+			if (state == ST_RUNNING && i == 0) label = u">>";
+
 			vm_graphic_textout_to_layer(
 				layer_hdl[0],
 				x*cell_width + cell_width/2 - vm_graphic_get_string_width(label)/2,
@@ -188,7 +190,16 @@ void handle_penevt(VMINT event, VMINT x, VMINT y) {
 
 	int key;
 	switch (y*4 + x) {
-		case 0: key = VM_KEY_LEFT_SOFTKEY; break;
+		// Top left-most key is left softkey when in menus, and speed-up when in game.
+		case 0: {
+			if (state == ST_RUNNING) {
+				key = config->key_fast_forward;
+			} else {
+				key = VM_KEY_LEFT_SOFTKEY;
+			}
+			break;
+		}
+
 		case 1: key = config->key_up; break;
 		case 2: key = VM_KEY_RIGHT_SOFTKEY; break;
 		case 3: key = config->key_a; break;
@@ -226,6 +237,7 @@ void vm_main(void) {
 	vm_reg_keyboard_callback(handle_keyevt);
 	vm_reg_pen_callback(handle_penevt);
 	vm_create_timer(33, draw_frame);
+	vm_kbd_set_mode(VM_KEYPAD_2KEY_NUMBER);
 	log_write("Created event handlers");
 
 	// Initialize emulator settings

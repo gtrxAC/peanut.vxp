@@ -10,7 +10,7 @@ extern VMWCHAR ucs2_str[128];
 
 int keymapper_cur_key;
 const char *key_names[] = {
-    "up", "down", "left", "right", "A", "B", "start", "select"
+    "up", "down", "left", "right", "A", "B", "start", "select", "fast fwd"
 };
 
 // _____________________________________________________________________________
@@ -57,9 +57,10 @@ void handle_keyevt_keymapper(VMINT event, VMINT keycode) {
 		case 5: config->key_b = keycode; break;
 		case 6: config->key_start = keycode; break;
 		case 7: config->key_select = keycode; break;
+		case 8: config->key_fast_forward = keycode; break;
 	}
 	keymapper_cur_key++;
-	if (keymapper_cur_key > 7) {
+	if (keymapper_cur_key > 8) {
 		save_config();
 		set_state(ST_MENU);
 	}

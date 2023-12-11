@@ -10,6 +10,8 @@ VMUINT8 *cart_ram;
 int tick_count;
 char fps_str[8];
 
+VMBOOL fast_forward;
+
 extern VMUINT8 *canvas_buf;
 extern VMINT layer_hdl[2];
 extern VMINT screen_width;
@@ -67,6 +69,8 @@ void lcd_draw_line(struct gb_s *gb, const uint8_t pixels[160], const unsigned in
 	}
 }
 
+void lcd_draw_line_stub(struct gb_s *gb, const uint8_t pixels[160], const unsigned int line) {};
+
 void write_save() {
 	if (!gb_inited) return;
 	int save_size = gb_get_save_size(gb);
@@ -86,6 +90,12 @@ void draw_emu() {
 
     gb_run_frame(gb);
     gb_run_frame(gb);
+	if (fast_forward) {
+		gb->display.lcd_draw_line = lcd_draw_line_stub;
+		gb_run_frame(gb);
+		gb_run_frame(gb);
+		gb->display.lcd_draw_line = lcd_draw_line;
+	}
     vm_graphic_flush_layer(layer_hdl, 2);
 
     if (config->show_fps) {
@@ -119,6 +129,7 @@ void handle_keyevt_emu(VMINT event, VMINT keycode) {
 			else if (keycode == config->key_start) gb->direct.joypad_bits.start = 0;
 			else if (keycode == config->key_select) gb->direct.joypad_bits.select = 0;
 
+			else if (keycode == config->key_fast_forward) fast_forward = !fast_forward;
 			else if (keycode == VM_KEY_NUM0) {
 				write_save();
 				set_state(ST_MENU);

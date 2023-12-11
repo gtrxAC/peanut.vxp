@@ -6,7 +6,6 @@ Game Boy emulator based on [Peanut-GB](https://github.com/deltabeard/Peanut-GB) 
 
 ## Status
 * Currently the emulator can run any Game Boy (not Color) ROM that we've tested. The emulator core itself should support at least [these games](https://github.com/deltabeard/Peanut-GB/issues/31).
-* Input is supported, but only one key can be pressed at a time.
 * Sound emulation is not implemented and not planned due to MRE limitations.
 
 ## Compatibility
@@ -37,7 +36,7 @@ peanut.vxp currently works on any phone with MRE 2.5 or above, those mostly bein
 5. Send the VXP file to your phone and open it from the file manager.
 
 ## Key bindings
-Key bindings can be configured in the Options menu. While playing, the menu can be accessed with the `0` key, or with the `Menu` virtual button when using a touchscreen. Here are the default key bindings:
+Key bindings can be configured in the Options menu. Here are the default key bindings:
 | Game Boy | Keypad |
 | ----------- | ----------- |
 | Up | D-pad up
@@ -48,6 +47,14 @@ Key bindings can be configured in the Options menu. While playing, the menu can 
 | B | Left softkey
 | Start | `#`
 | Select | `*`
+| Menu | `0`
+| Fast forward | `1`
 
 ## License
 `src/`, `Makefile`, and `sdk/build.py` are MIT licensed, other files may have their own licensing terms (such as headers and link libraries taken from the MRE SDK).
+
+## Thanks
+* RedillGMV, aubykddi, and others in the [ROMphonix community](https://discord.gg/2GKuJjQagp) for testing and feedback
+* Peanut-GB contributors for making it easy to port Game Boy emulators to just about any platform
+* [Ximik_Boda](https://github.com/XimikBoda) for helping with MRE development
+* GrafxKid, the BGB emulator team, and [Lospec](https://lospec.com/) members Space Sandwich and WildLeoKnight for creating some awesome color palettes (see [config.c](https://github.com/gtrxAC/peanut.vxp/blob/main/src/config.c#L10))

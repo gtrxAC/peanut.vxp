@@ -1,6 +1,8 @@
 #pragma once
 #include "common.h"
 
+#define CONFIG_VERSION 2
+
 typedef enum ScaleMode {
     SCALE_1X,
     SCALE_2X,
@@ -26,6 +28,7 @@ typedef struct Config {
 
     VMBOOL show_fps;
     VMBOOL basic_touch_labels;
+    int key_fast_forward;
 } Config;
 
 void default_config();

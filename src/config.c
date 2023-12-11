@@ -28,7 +28,7 @@ void default_config() {
     config = gx_malloc(sizeof(Config));
     if (!config) return;
 
-    config->version = 1;
+    config->version = CONFIG_VERSION;
     config->interlace = VM_FALSE;
 
     if (screen_width >= 320 && screen_height >= 288) {
@@ -56,6 +56,17 @@ void default_config() {
 
     config->show_fps = VM_FALSE;
     config->basic_touch_labels = VM_FALSE;
+    config->key_fast_forward = VM_KEY_NUM1;
+    save_config();
+}
+
+void upgrade_config() {
+    if (config->version == CONFIG_VERSION) return;
+
+    if (config->version == 1) {
+        config->key_fast_forward = VM_KEY_NUM1;
+        config->version++;
+    }
     save_config();
 }
 
@@ -66,6 +77,7 @@ void load_config() {
     if (vm_file_get_attributes(ucs2_str) != -1) {
         read_from_file_to_addr("peanut.cfg", (void **)&config);
         if (!config) return;
+        upgrade_config();
         log_write("Loaded configuration file");
     } else {
         default_config();
