@@ -9,12 +9,14 @@ VMFILE log_file;
 extern VMWCHAR ucs2_str[128];
 
 void *gx_malloc(int size) {
+    if (!size) return 0;
     void *result = vm_malloc(size);
     if (!result) show_error_and_exit("Out of memory!");
     return result;
 }
 
 void *gx_calloc(int size) {
+    if (!size) return 0;
     void *result = vm_calloc(size);
     if (!result) show_error_and_exit("Out of memory!");
     return result;

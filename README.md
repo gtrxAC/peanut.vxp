@@ -5,7 +5,7 @@ Game Boy emulator based on [Peanut-GB](https://github.com/deltabeard/Peanut-GB) 
 *<div style="text-align:center;">Nokia 215 • Alcatel 3040g (thanks RedillGMV) • MyPhone T29 TV Duo (thanks aubykddi)</div>*
 
 ## Status
-* Currently the emulator can run any Game Boy (not Color) ROM that we've tested. The emulator core itself should support at least [these games](https://github.com/deltabeard/Peanut-GB/issues/31).
+* Currently the emulator can run any Game Boy ROM that we've tested. The emulator core itself should support at least [these games](https://github.com/deltabeard/Peanut-GB/issues/31).
 * Sound emulation is not implemented and not planned due to MRE limitations.
 
 ## Compatibility
@@ -14,6 +14,7 @@ peanut.vxp currently works on any phone with MRE 2.5 or above, those mostly bein
 | ----------- | ----------- |
 | Alcatel 2005x | Works
 | Alcatel 3040 | Works
+| Explay T285 | Works
 | MyPhone T29 TV Duo | Works
 | Nokia 215<br>Likely other S30+ phones | Works
 | Starmobile B506 | Works
@@ -23,6 +24,7 @@ peanut.vxp currently works on any phone with MRE 2.5 or above, those mostly bein
 | Mobiwire Dakota | Crash
 | MyPhone my16 | Unsupported (not enough RAM)
 | Alcatel OT-871a | Failed to start (botched MRE implementation)
+| Fly DS125 | Failed to start
 | Motorola Gleam+ | Failed to start (too old?)
 
 ## How to build
@@ -54,7 +56,7 @@ Key bindings can be configured in the Options menu. Here are the default key bin
 `src/`, `Makefile`, and `sdk/build.py` are MIT licensed, other files may have their own licensing terms (such as headers and link libraries taken from the MRE SDK).
 
 ## Thanks
-* RedillGMV, aubykddi, and others in the [ROMphonix community](https://discord.gg/2GKuJjQagp) for testing and feedback
+* RedillGMV, aubykddi, and others in the [ROMphonix community](https://discord.gg/2GKuJjQagp) and [4PDA thread](https://4pda.to/forum/index.php?showtopic=501783&st=2280) for testing and feedback
 * Peanut-GB contributors for making it easy to port Game Boy emulators to just about any platform
 * [Ximik_Boda](https://github.com/XimikBoda) for helping with MRE development
 * GrafxKid, the BGB emulator team, and [Lospec](https://lospec.com/) members Space Sandwich and WildLeoKnight for creating some awesome color palettes (see [config.c](https://github.com/gtrxAC/peanut.vxp/blob/main/src/config.c#L10))

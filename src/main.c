@@ -1,6 +1,6 @@
 #define ENABLE_LCD 1
-#define PEANUT_GB_12_COLOUR 0
 #define STB_DS_IMPLEMENTATION
+#define PEANUT_GB_HIGH_LCD_ACCURACY 0
 #include "common.h"
 
 VMINT layer_hdl[2];
@@ -80,7 +80,7 @@ void calc_screen_size() {
 	}
 	switch (config->scale) {
 		case SCALE_1X: screen_height = 160; break;
-		case SCALE_1_5X: screen_height = 216; break;
+		// case SCALE_1_5X: screen_height = 216; break;
 		case SCALE_2X: screen_height = 288; break;
 	}
 }
@@ -112,7 +112,7 @@ void init_canvas() {
 	int canvas_width, canvas_height;
 	switch (config->scale) {
 		case SCALE_1X: canvas_width = 160; canvas_height = 144; break;
-		case SCALE_1_5X: canvas_width = 240; canvas_height = 216; break;
+		// case SCALE_1_5X: canvas_width = 240; canvas_height = 216; break;
 		case SCALE_2X: canvas_width = 320; canvas_height = 288; break;
 	}
 

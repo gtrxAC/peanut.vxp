@@ -48,22 +48,54 @@ void gb_error(struct gb_s* gb, const enum gb_error_e err, const uint16_t addr) {
 	}
 }
 
+#define RGB555_TO_RGB565(c) (((c & 0b111111111100000) << 1) | (c & 0b11111))
+
 void lcd_draw_line(struct gb_s *gb, const uint8_t pixels[160], const unsigned int line) {
 	switch (config->scale) {
 		case SCALE_1X: {
-			for (int i = 0; i < 160; i++) {
-				((VMUINT16 *)canvas_buf)[160*line + i] = config->palette[pixels[i]];
-			}
+			#if PEANUT_FULL_GBC_SUPPORT
+				if (gb->cgb.cgbMode) {
+					for (int i = 0; i < 160; i++) {
+						((VMUINT16 *)canvas_buf)[160*line + i] = RGB555_TO_RGB565(gb->cgb.fixPalette[pixels[i]]);
+					}
+				} else {
+					for (int i = 0; i < 160; i++) {
+						((VMUINT16 *)canvas_buf)[160*line + i] = config->palette[pixels[i] & 0b11];
+					}
+				}
+			#else
+				for (int i = 0; i < 160; i++) {
+					((VMUINT16 *)canvas_buf)[160*line + i] = config->palette[pixels[i]];
+				}
+			#endif
 			break;
 		}
 
 		case SCALE_2X: {
-			for (int i = 0; i < 160; i++) {
-				((VMUINT16 *)canvas_buf)[640*line + i*2] = config->palette[pixels[i]];
-				((VMUINT16 *)canvas_buf)[640*line + i*2 + 1] = config->palette[pixels[i]];
-				((VMUINT16 *)canvas_buf)[640*line + i*2 + 320] = config->palette[pixels[i]];
-				((VMUINT16 *)canvas_buf)[640*line + i*2 + 321] = config->palette[pixels[i]];
-			}
+			#if PEANUT_FULL_GBC_SUPPORT
+				if (gb->cgb.cgbMode) {
+					for (int i = 0; i < 160; i++) {
+						((VMUINT16 *)canvas_buf)[640*line + i*2] = RGB555_TO_RGB565(gb->cgb.fixPalette[pixels[i]]);
+						((VMUINT16 *)canvas_buf)[640*line + i*2 + 1] = RGB555_TO_RGB565(gb->cgb.fixPalette[pixels[i]]);
+						((VMUINT16 *)canvas_buf)[640*line + i*2 + 320] = RGB555_TO_RGB565(gb->cgb.fixPalette[pixels[i]]);
+						((VMUINT16 *)canvas_buf)[640*line + i*2 + 321] = RGB555_TO_RGB565(gb->cgb.fixPalette[pixels[i]]);
+					}
+				} else {
+					for (int i = 0; i < 160; i++) {
+						((VMUINT16 *)canvas_buf)[640*line + i*2] = config->palette[pixels[i] & 0b11];
+						((VMUINT16 *)canvas_buf)[640*line + i*2 + 1] = config->palette[pixels[i] & 0b11];
+						((VMUINT16 *)canvas_buf)[640*line + i*2 + 320] = config->palette[pixels[i] & 0b11];
+						((VMUINT16 *)canvas_buf)[640*line + i*2 + 321] = config->palette[pixels[i] & 0b11];
+					}
+				}
+			#else
+				for (int i = 0; i < 160; i++) {
+					((VMUINT16 *)canvas_buf)[640*line + i*2] = config->palette[pixels[i]];
+					((VMUINT16 *)canvas_buf)[640*line + i*2 + 1] = config->palette[pixels[i]];
+					((VMUINT16 *)canvas_buf)[640*line + i*2 + 320] = config->palette[pixels[i]];
+					((VMUINT16 *)canvas_buf)[640*line + i*2 + 321] = config->palette[pixels[i]];
+				}
+			#endif
 			break;
 		}
 	}

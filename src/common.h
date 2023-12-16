@@ -12,6 +12,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define PEANUT_FULL_GBC_SUPPORT 1  // Uncomment for GBC support (uses more RAM; for 2500k version)
+// #define PEANUT_GB_12_COLOUR 0  // Uncomment for no GBC support (for standard and 500k versions)
+
 #include "peanut_gb.h"
 #include "stb_ds.h"
 #include "util.h"

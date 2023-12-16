@@ -115,7 +115,7 @@ void set_menu(Menu new_menu) {
             // This menu uses malloc'ed strings because the MRE find functions
             // return UCS2 strings, we need to convert them to ASCII
             struct vm_fileinfo_t fileinfo;
-            vm_ascii_to_ucs2(ucs2_str, 256, "e:\\peanutvxp\\*.gb");
+            vm_ascii_to_ucs2(ucs2_str, 256, "e:\\peanutvxp\\*.gb*");
             VMINT find_handle = vm_find_first(ucs2_str, &fileinfo);
             VMINT find_result;
 
@@ -153,7 +153,7 @@ void set_menu(Menu new_menu) {
             arrput(menu_list, config->show_fps ? "FPS counter: ON" : "FPS counter: OFF");
             switch (config->scale) {
                 case SCALE_1X: arrput(menu_list, "Scaling: 1x"); break;
-                case SCALE_1_5X: arrput(menu_list, "Scaling: 1.5x (not impl'd)"); break;
+                // case SCALE_1_5X: arrput(menu_list, "Scaling: 1.5x (not impl'd)"); break;
                 case SCALE_2X: arrput(menu_list, "Scaling: 2x (experimental)"); break;
                 default: arrput(menu_list, "Scaling: Unknown"); break;
             }
