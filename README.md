@@ -32,10 +32,10 @@ peanut.vxp currently works on any phone with MRE 2.5 or above, those mostly bein
 2. Run `make setup` and `make`.
 
 ## How to use
-1. Download the VXP file from Releases, or compile it yourself by following the above steps.
+1. Download the VXP file from [Releases](https://github.com/gtrxAC/peanut.vxp/releases), or compile it yourself by following the above steps.
 2. **Skip this step if you're not using Series 30+.** You'll need to sign the VXP file to your SIM card's IMSI. There are many ways to find your IMSI, [here](https://github.com/raspiduino/mre-sdk/discussions/1#discussioncomment-3571276) is one. Insert the IMSI and VXP into [this tool](https://vxpatch.luxferre.top/).
 3. Put ROM files on your phone's SD card in `E:\peanutvxp`. Note that the actual path may differ based on the phone's MRE implementation - usually it's the `peanutvxp` folder in the root of your SD card, but if not, you can follow step 4 and you'll find a config and log file in the correct directory.
-5. Send the VXP file to your phone and open it from the file manager.
+4. Send the VXP file to your phone and open it from the file manager.
 
 ## Key bindings
 Key bindings can be configured in the Options menu. Here are the default key bindings:
