@@ -67,6 +67,11 @@ void upgrade_config() {
         config->key_fast_forward = VM_KEY_NUM1;
         config->version++;
     }
+    if (config->version == 2) {
+        if (config->scale == 0) config->scale = SCALE_1X;
+        else if (config->scale == 1) config->scale = SCALE_2X;
+        config->version++;
+    }
     save_config();
 }
 

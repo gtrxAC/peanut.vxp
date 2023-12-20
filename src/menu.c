@@ -153,8 +153,8 @@ void set_menu(Menu new_menu) {
             arrput(menu_list, config->show_fps ? "FPS counter: ON" : "FPS counter: OFF");
             switch (config->scale) {
                 case SCALE_1X: arrput(menu_list, "Scaling: 1x"); break;
-                // case SCALE_1_5X: arrput(menu_list, "Scaling: 1.5x (not impl'd)"); break;
-                case SCALE_2X: arrput(menu_list, "Scaling: 2x (experimental)"); break;
+                case SCALE_1_5X: arrput(menu_list, "Scaling: 1.5x"); break;
+                case SCALE_2X: arrput(menu_list, "Scaling: 2x"); break;
                 default: arrput(menu_list, "Scaling: Unknown"); break;
             }
             switch (config->palette_choice) {

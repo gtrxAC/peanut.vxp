@@ -1,13 +1,13 @@
 #pragma once
 #include "common.h"
 
-#define CONFIG_VERSION 2
+#define CONFIG_VERSION 3
 
 typedef enum ScaleMode {
     SCALE_1X,
+    SCALE_1_5X,
     SCALE_2X,
     SCALE_COUNT,
-    SCALE_1_5X
 } ScaleMode;
 
 typedef enum RotationMode {

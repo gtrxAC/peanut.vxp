@@ -80,7 +80,7 @@ void calc_screen_size() {
 	}
 	switch (config->scale) {
 		case SCALE_1X: screen_height = 160; break;
-		// case SCALE_1_5X: screen_height = 216; break;
+		case SCALE_1_5X: screen_height = 216; break;
 		case SCALE_2X: screen_height = 288; break;
 	}
 }
@@ -112,7 +112,7 @@ void init_canvas() {
 	int canvas_width, canvas_height;
 	switch (config->scale) {
 		case SCALE_1X: canvas_width = 160; canvas_height = 144; break;
-		// case SCALE_1_5X: canvas_width = 240; canvas_height = 216; break;
+		case SCALE_1_5X: canvas_width = 240; canvas_height = 216; break;
 		case SCALE_2X: canvas_width = 320; canvas_height = 288; break;
 	}
 
