@@ -13,6 +13,7 @@ char fps_str[8];
 VMBOOL fast_forward;
 
 extern VMUINT8 *canvas_buf;
+extern VMUINT8 *scale_buf;
 extern VMINT layer_hdl[2];
 extern VMINT screen_width;
 extern VMINT screen_height;
@@ -52,6 +53,7 @@ void gb_error(struct gb_s* gb, const enum gb_error_e err, const uint16_t addr) {
 
 void lcd_draw_line(struct gb_s *gb, const uint8_t pixels[160], const unsigned int line) {
 	switch (config->scale) {
+		// 1x scaling: draw directly on canvas buffer
 		case SCALE_1X: {
 			#if PEANUT_FULL_GBC_SUPPORT
 				if (gb->cgb.cgbMode) {
@@ -71,6 +73,27 @@ void lcd_draw_line(struct gb_s *gb, const uint8_t pixels[160], const unsigned in
 			break;
 		}
 
+		// 1.5x scaling: same as 1x but draw to a separate buffer which gets scaled to the canvas buffer later
+		case SCALE_1_5X_NEAREST: case SCALE_1_5X_BILINEAR: {
+			#if PEANUT_FULL_GBC_SUPPORT
+				if (gb->cgb.cgbMode) {
+					for (int i = 0; i < 160; i++) {
+						((VMUINT16 *)scale_buf)[160*line + i] = RGB555_TO_RGB565(gb->cgb.fixPalette[pixels[i]]);
+					}
+				} else {
+					for (int i = 0; i < 160; i++) {
+						((VMUINT16 *)scale_buf)[160*line + i] = config->palette[pixels[i] & 0b11];
+					}
+				}
+			#else
+				for (int i = 0; i < 160; i++) {
+					((VMUINT16 *)scale_buf)[160*line + i] = config->palette[pixels[i]];
+				}
+			#endif
+			break;
+		}
+
+		// 2x scaling: draw 4 pixels at a time on canvas buffer
 		case SCALE_2X: {
 			#if PEANUT_FULL_GBC_SUPPORT
 				if (gb->cgb.cgbMode) {
@@ -117,6 +140,81 @@ void write_save() {
 //  Rendering
 // _____________________________________________________________________________
 //
+#define FIXED_POINT_BITS 11
+
+#define I2F(x) ((x) << FIXED_POINT_BITS)
+#define F2I(x) ((x) >> FIXED_POINT_BITS)
+#define FIXMUL(x, y) (F2I((x) * (y)))
+#define FIXDIV(x, y) (I2F(x) / (y))
+
+#define fixed_point int
+
+int interlace_counter;
+
+// Bilinear scaling using fixed-point arithmetic and constant values, used for 1.5x scaling mode
+void scale_bilinear() {
+	int begin = config->interlace ? interlace_counter : 0;
+	int step = 1 + config->interlace;
+
+    for (int y = begin; y < 216; y += step) {
+		fixed_point y_position_FFF = y*1356;
+        int y_floor = F2I(y_position_FFF);
+
+        fixed_point y_fraction_FFF = y_position_FFF - I2F(y_floor);
+        fixed_point y_flip_fraction = 2048 - y_fraction_FFF;
+
+        for (int x = 0; x < 240; x++) {
+			fixed_point x_position_FFF = x*1356;
+            int x_floor = F2I(x_position_FFF);
+            fixed_point x_fraction_FFF = x_position_FFF - I2F(x_floor);
+
+            int index = y_floor * 160 + x_floor;
+            VMUINT16 pixel_tl = ((VMUINT16 *)scale_buf)[index];
+            VMUINT16 pixel_tr = ((VMUINT16 *)scale_buf)[index + 1];
+            VMUINT16 pixel_bl = ((VMUINT16 *)scale_buf)[index + 160];
+            VMUINT16 pixel_br = ((VMUINT16 *)scale_buf)[index + 161];
+
+            fixed_point fraction_tl = FIXMUL(2048 - x_fraction_FFF, y_flip_fraction);
+            fixed_point fraction_tr = FIXMUL(x_fraction_FFF, y_flip_fraction);
+            fixed_point fraction_bl = FIXMUL(2048 - x_fraction_FFF, y_fraction_FFF);
+            fixed_point fraction_br = FIXMUL(x_fraction_FFF, y_fraction_FFF);
+
+            int interp_r = (FIXMUL(fraction_tl, pixel_tl) +
+                            FIXMUL(fraction_tr, pixel_tr) +
+                            FIXMUL(fraction_bl, pixel_bl) +
+                            FIXMUL(fraction_br, pixel_br));
+
+            int interp_g = (FIXMUL(fraction_tl, (pixel_tl << 6) & 0b11111100000000000) +
+                            FIXMUL(fraction_tr, (pixel_tr << 6) & 0b11111100000000000) +
+                            FIXMUL(fraction_bl, (pixel_bl << 6) & 0b11111100000000000) +
+                            FIXMUL(fraction_br, (pixel_br << 6) & 0b11111100000000000));
+
+            int interp_b = (FIXMUL(fraction_tl, (pixel_tl << 11) & 0b1111100000000000) +
+                            FIXMUL(fraction_tr, (pixel_tr << 11) & 0b1111100000000000) +
+                            FIXMUL(fraction_bl, (pixel_bl << 11) & 0b1111100000000000) +
+                            FIXMUL(fraction_br, (pixel_br << 11) & 0b1111100000000000));
+
+            ((VMUINT16 *)canvas_buf)[y * 240 + x] = (interp_r & VM_COLOR_RED) | ((interp_g >> 6) & VM_COLOR_GREEN) | (interp_b >> 11);
+        }
+    }
+
+	interlace_counter = !interlace_counter;
+}
+
+// Nearest neighbor version
+void scale_nearest() {
+	int begin = config->interlace ? interlace_counter : 0;
+	int step = 1 + config->interlace;
+
+    for (int y = begin; y < 216; y += step) {
+        for (int x = 0; x < 240; x++) {
+            ((VMUINT16 *)canvas_buf)[y*240 + x] = ((VMUINT16 *)scale_buf)[(y*2/3)*160 + (x*2/3)];
+        }
+    }
+
+	interlace_counter = !interlace_counter;
+}
+
 void draw_emu() {
     if (config->show_fps) tick_count = vm_get_tick_count();
 
@@ -125,9 +223,12 @@ void draw_emu() {
 	if (fast_forward) {
 		gb->display.lcd_draw_line = lcd_draw_line_stub;
 		gb_run_frame(gb);
-		gb_run_frame(gb);
+    	gb_run_frame(gb);
 		gb->display.lcd_draw_line = lcd_draw_line;
 	}
+
+	if (config->scale == SCALE_1_5X_NEAREST) scale_nearest();
+	else if (config->scale == SCALE_1_5X_BILINEAR) scale_bilinear();
     vm_graphic_flush_layer(layer_hdl, 2);
 
     if (config->show_fps) {

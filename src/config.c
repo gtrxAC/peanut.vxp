@@ -64,12 +64,18 @@ void upgrade_config() {
     if (config->version == CONFIG_VERSION) return;
 
     if (config->version == 1) {
+        // Added fast-forward option, bound to '1' by default.
         config->key_fast_forward = VM_KEY_NUM1;
         config->version++;
     }
     if (config->version == 2) {
-        if (config->scale == 0) config->scale = SCALE_1X;
-        else if (config->scale == 1) config->scale = SCALE_2X;
+        // SCALE_2X value switched from 1 to 2
+        if (config->scale == 1) config->scale = 2;
+        config->version++;
+    }
+    if (config->version == 3) {
+        // SCALE_2X value switched from 2 to 3
+        if (config->scale == 2) config->scale = 3;
         config->version++;
     }
     save_config();

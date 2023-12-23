@@ -1,11 +1,12 @@
 #pragma once
 #include "common.h"
 
-#define CONFIG_VERSION 3
+#define CONFIG_VERSION 4
 
 typedef enum ScaleMode {
     SCALE_1X,
-    SCALE_1_5X,
+    SCALE_1_5X_NEAREST,
+    SCALE_1_5X_BILINEAR,
     SCALE_2X,
     SCALE_COUNT,
 } ScaleMode;

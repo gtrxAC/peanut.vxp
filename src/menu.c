@@ -149,11 +149,12 @@ void set_menu(Menu new_menu) {
         }
 
         case MENU_OPTIONS: {
-            arrput(menu_list, gb->direct.interlace ? "Interlacing: ON" : "Interlacing: OFF");
+            arrput(menu_list, config->interlace ? "Interlacing: ON" : "Interlacing: OFF");
             arrput(menu_list, config->show_fps ? "FPS counter: ON" : "FPS counter: OFF");
             switch (config->scale) {
                 case SCALE_1X: arrput(menu_list, "Scaling: 1x"); break;
-                case SCALE_1_5X: arrput(menu_list, "Scaling: 1.5x"); break;
+                case SCALE_1_5X_NEAREST: arrput(menu_list, "Scaling: 1.5x (nearest)"); break;
+                case SCALE_1_5X_BILINEAR: arrput(menu_list, "Scaling: 1.5x (bilinear)"); break;
                 case SCALE_2X: arrput(menu_list, "Scaling: 2x"); break;
                 default: arrput(menu_list, "Scaling: Unknown"); break;
             }

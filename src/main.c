@@ -12,8 +12,14 @@ VMINT screen_height;
 VMINT screen_full_height;  // Actual screen height
 vm_graphic_color color;
 
+extern struct gb_s *gb;
+
 VMINT canvas;
 VMUINT8 *canvas_buf;
+
+// in 1.5x scaling mode, game is drawn into scale_buf, then it's upscaled to
+// canvas_buf, which is then drawn
+VMUINT8 *scale_buf;
 
 // Most MRE functions use wide (UCS2) strings, here's a general purpose buffer for them
 VMWCHAR ucs2_str[128];
@@ -80,7 +86,7 @@ void calc_screen_size() {
 	}
 	switch (config->scale) {
 		case SCALE_1X: screen_height = 160; break;
-		case SCALE_1_5X: screen_height = 216; break;
+		case SCALE_1_5X_BILINEAR: SCALE_1_5X_NEAREST: screen_height = 216; break;
 		case SCALE_2X: screen_height = 288; break;
 	}
 }
@@ -95,6 +101,16 @@ void set_state(State new_state) {
 			color.vm_color_565 = VM_COLOR_BLACK;
 			vm_graphic_setcolor(&color);
 			vm_graphic_fill_rect_ex(layer_hdl[0], 0, 0, screen_width, screen_height);
+
+			// Interlacing in 1x and 2x modes simply means half of the lines are
+			// not rendered by the emulator core itself.
+			// However, in 1.5x modes, the emulator core renders the whole
+			// frame, but the scaling algorithm is what skips half of the lines.
+			if (config->scale == SCALE_1_5X_NEAREST || config->scale == SCALE_1_5X_BILINEAR) {
+				gb->direct.interlace = 0;
+			} else {
+				gb->direct.interlace = config->interlace;
+			}
 			break;
 		}
 
@@ -112,7 +128,7 @@ void init_canvas() {
 	int canvas_width, canvas_height;
 	switch (config->scale) {
 		case SCALE_1X: canvas_width = 160; canvas_height = 144; break;
-		case SCALE_1_5X: canvas_width = 240; canvas_height = 216; break;
+		case SCALE_1_5X_NEAREST: case SCALE_1_5X_BILINEAR: canvas_width = 240; canvas_height = 216; break;
 		case SCALE_2X: canvas_width = 320; canvas_height = 288; break;
 	}
 
@@ -120,6 +136,19 @@ void init_canvas() {
 	if (layer_hdl[1] != -1) {
 		vm_graphic_delete_layer(layer_hdl[1]);
 		vm_graphic_release_canvas(canvas);
+	}
+	if (scale_buf) {
+		free(scale_buf);
+		scale_buf = 0;
+	}
+
+	// Create scaling layer for 1.5x scaling mode
+	if (config->scale == SCALE_1_5X_NEAREST || config->scale == SCALE_1_5X_BILINEAR) {
+		scale_buf = malloc(160*144*2);
+		if (!scale_buf) {
+			show_error_and_exit("Out of memory!");
+			return;
+		}
 	}
 
 	// Create new canvas and layer with the appropriate size
