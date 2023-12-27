@@ -129,10 +129,10 @@ void lcd_draw_line_stub(struct gb_s *gb, const uint8_t pixels[160], const unsign
 void write_save() {
 	if (!gb_inited) return;
 	int save_size = gb_get_save_size(gb);
-	if (save_size) {
-		write_from_addr_to_file(save_name, cart_ram, save_size);
-		log_write("Wrote save file");
-	}
+	if (save_size < 0 || !cart_ram) return;
+
+	write_from_addr_to_file(save_name, cart_ram, save_size);
+	log_write("Wrote save file");
 }
 
 // _____________________________________________________________________________
@@ -201,6 +201,41 @@ void scale_bilinear() {
 	scaled_interlace_count = !scaled_interlace_count;
 }
 
+// Grayscale version (only calculates red component, faster)
+void scale_bilinear_gray() {
+	int begin = config->interlace ? scaled_interlace_count : 0;
+	int step = 1 + config->interlace;
+
+    for (int y = begin; y < 216; y += step) {
+		fixed_point y_position_FFF = y*1356;
+        int y_floor = F2I(y_position_FFF);
+
+        fixed_point y_fraction_FFF = y_position_FFF - I2F(y_floor);
+        fixed_point y_flip_fraction = 2048 - y_fraction_FFF;
+
+        for (int x = 0; x < 240; x++) {
+			fixed_point x_position_FFF = x*1356;
+            int x_floor = F2I(x_position_FFF);
+            fixed_point x_fraction_FFF = x_position_FFF - I2F(x_floor);
+
+            int index = y_floor * 160 + x_floor;
+            VMUINT16 pixel_tl = ((VMUINT16 *)scale_buf)[index];
+            VMUINT16 pixel_tr = ((VMUINT16 *)scale_buf)[index + 1];
+            VMUINT16 pixel_bl = ((VMUINT16 *)scale_buf)[index + 160];
+            VMUINT16 pixel_br = ((VMUINT16 *)scale_buf)[index + 161];
+
+            int interp_r = (FIXMUL(FIXMUL(2048 - x_fraction_FFF, y_flip_fraction), pixel_tl) +
+                            FIXMUL(FIXMUL(x_fraction_FFF, y_flip_fraction), pixel_tr) +
+                            FIXMUL(FIXMUL(2048 - x_fraction_FFF, y_fraction_FFF), pixel_bl) +
+                            FIXMUL(FIXMUL(x_fraction_FFF, y_fraction_FFF), pixel_br));
+
+            ((VMUINT16 *)canvas_buf)[y * 240 + x] = (interp_r & VM_COLOR_RED) | ((interp_r >> 5) & VM_COLOR_GREEN) | (interp_r >> 11);
+        }
+    }
+
+	scaled_interlace_count = !scaled_interlace_count;
+}
+
 // Nearest neighbor version
 void scale_nearest() {
 	int begin = config->interlace ? scaled_interlace_count : 0;
@@ -214,7 +249,7 @@ void scale_nearest() {
 
 	scaled_interlace_count = !scaled_interlace_count;
 }
-extern int midi_handle;
+
 void draw_emu() {
     if (config->show_fps) tick_count = vm_get_tick_count();
 
@@ -230,7 +265,12 @@ void draw_emu() {
 	}
 
 	if (config->scale == SCALE_1_5X_NEAREST) scale_nearest();
-	else if (config->scale == SCALE_1_5X_BILINEAR) scale_bilinear();
+	else if (config->scale == SCALE_1_5X_BILINEAR) {
+		// If using the grayscale palette and not in GBC mode, use a faster algorithm
+		if (config->palette_choice == 0 && !gb->cgb.cgbMode) scale_bilinear_gray();
+		else scale_bilinear();
+	}
+
     vm_graphic_flush_layer(layer_hdl, 2);
 	if (config->audio) audio_update();
 

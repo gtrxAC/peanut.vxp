@@ -1,12 +1,12 @@
 # peanut.vxp
-Game Boy emulator based on [Peanut-GB](https://github.com/deltabeard/Peanut-GB) for [MediaTek MRE](https://lpcwiki.miraheze.org/wiki/MAUI_Runtime_Environment) feature phones
+Game Boy emulator based on [Peanut-GB](https://github.com/deltabeard/Peanut-GB) for [MediaTek MRE](https://lpcwiki.miraheze.org/wiki/MediaTek_MRE) feature phones
 
 ![](img/marioland_215.jpg)
 *<div style="text-align:center;">Nokia 215 • Alcatel 3040g (thanks RedillGMV) • MyPhone T29 TV Duo (thanks aubykddi)</div>*
 
 ## Status
 * Currently the emulator can run any Game Boy ROM that we've tested. The emulator core itself should support at least [these games](https://github.com/deltabeard/Peanut-GB/issues/31).
-* Sound emulation is not implemented and not planned due to MRE limitations.
+* Sound emulation is highly experimental and disabled by default.
 
 ## Compatibility
 peanut.vxp currently works on any phone with MRE 2.5 or above, those mostly being Nokia and Alcatel phones released since around 2014. Support for older devices is planned but currently not possible.
@@ -18,6 +18,7 @@ peanut.vxp currently works on any phone with MRE 2.5 or above, those mostly bein
 | MyPhone T29 TV Duo | Works
 | Nokia 215<br>Nokia 230<br>Nokia 3310 2G (2017)<br>Likely other S30+ phones | Works
 | Starmobile B506 | Works
+| LG C299 | Stuck on MRE logo
 | Alcatel A392CC | Crash
 | Doro PhoneEasy 530X<br>Likely other Doro phones | Crash
 | Logic M5 | Crash
