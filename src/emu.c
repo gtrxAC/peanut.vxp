@@ -265,9 +265,14 @@ void draw_emu() {
 	}
 
 	if (config->scale == SCALE_1_5X_NEAREST) scale_nearest();
+
 	else if (config->scale == SCALE_1_5X_BILINEAR) {
 		// If using the grayscale palette and not in GBC mode, use a faster algorithm
-		if (config->palette_choice == 0 && !gb->cgb.cgbMode) scale_bilinear_gray();
+		#if PEANUT_FULL_GBC_SUPPORT
+			if (config->palette_choice == 0 && !gb->cgb.cgbMode) scale_bilinear_gray();
+		#else
+			if (config->palette_choice == 0) scale_bilinear_gray();
+		#endif
 		else scale_bilinear();
 	}
 
