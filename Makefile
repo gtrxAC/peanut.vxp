@@ -11,8 +11,8 @@ OBJCOPY = objcopy
 SDK = sdk
 APP_FILE_NAME = peanut
 
-INCLUDES = -I "$(SDK)/include" -I "src/include" -I "src/ResID" -I "src" 
-DEFINES = -D _MINIGUI_LIB_ -D _USE_MINIGUIENTRY -D _NOUNIX_ -D _FOR_WNC -D __MRE_SDK__ -D   __MRE_VENUS_NORMAL__  -D  __MMI_MAINLCD_240X320__ -D MRE -D GCC -D __MRE_COMPILER_GCC__
+INCLUDES = -I "$(SDK)/include" -I "src/include" -I "src/ResID" -I "src"
+DEFINES = -D _MINIGUI_LIB_ -D _USE_MINIGUIENTRY -D _NOUNIX_ -D _FOR_WNC -D __MRE_SDK__ -D __MRE_VENUS_NORMAL__ -D __MMI_MAINLCD_240X320__ -D MRE -D GCC -D __MRE_COMPILER_GCC__
 
 SHARED_PARAM = -c -fpic -march=armv5te -fvisibility=hidden -Os -mlittle-endian $(INCLUDES) $(DEFINES) -fdata-sections -ffunction-sections
 GCC_PARAM = $(SHARED_PARAM)

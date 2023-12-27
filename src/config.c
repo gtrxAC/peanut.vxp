@@ -78,6 +78,11 @@ void upgrade_config() {
         if (config->scale == 2) config->scale = 3;
         config->version++;
     }
+    if (config->version == 4) {
+        // Added experimental audio option, disabled by default.
+        config->audio = VM_FALSE;
+        config->version++;
+    }
     save_config();
 }
 

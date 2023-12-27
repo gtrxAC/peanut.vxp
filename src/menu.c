@@ -151,6 +151,7 @@ void set_menu(Menu new_menu) {
         case MENU_OPTIONS: {
             arrput(menu_list, config->interlace ? "Interlacing: ON" : "Interlacing: OFF");
             arrput(menu_list, config->show_fps ? "FPS counter: ON" : "FPS counter: OFF");
+            arrput(menu_list, config->audio ? "Audio: ON (experimental)" : "Audio: OFF");
             switch (config->scale) {
                 case SCALE_1X: arrput(menu_list, "Scaling: 1x"); break;
                 case SCALE_1_5X_NEAREST: arrput(menu_list, "Scaling: 1.5x (nearest)"); break;
@@ -170,7 +171,6 @@ void set_menu(Menu new_menu) {
             if (touch_mode) {
                 arrput(menu_list, config->basic_touch_labels ? "Touch buttons: Basic" : "Touch buttons: Unicode");
             }
-            // arrput(menu_list, "Rotation");
             break;
         }
 
@@ -267,13 +267,19 @@ void menu_confirm() {
                 set_menu(MENU_OPTIONS);
                 menu_choice = 1;
             }
+            else if (!strncmp(menu_list[menu_choice], "Audio", 5)) {
+                config->audio = !config->audio;
+                save_config();
+                set_menu(MENU_OPTIONS);
+                menu_choice = 2;
+            }
             else if (!strncmp(menu_list[menu_choice], "Scaling", 7)) {
                 config->scale++;
                 if (config->scale == SCALE_COUNT) config->scale = SCALE_1X;
                 init_canvas();
                 save_config();
                 set_menu(MENU_OPTIONS);
-                menu_choice = 2;
+                menu_choice = 3;
             }
             else if (!strncmp(menu_list[menu_choice], "Palette", 7)) {
                 config->palette_choice++;
@@ -283,7 +289,7 @@ void menu_confirm() {
                 }
                 save_config();
                 set_menu(MENU_OPTIONS);
-                menu_choice = 3;
+                menu_choice = 4;
             }
             else if (!strcmp(menu_list[menu_choice], "Key mappings")) {
                 set_state(ST_KEY_MAPPER);
@@ -292,7 +298,7 @@ void menu_confirm() {
                 config->basic_touch_labels = !config->basic_touch_labels;
                 save_config();
                 set_menu(MENU_OPTIONS);
-                menu_choice = 5;
+                menu_choice = 6;
                 draw_touch_area();
             }
             break;

@@ -149,11 +149,11 @@ void write_save() {
 
 #define fixed_point int
 
-int interlace_counter;
+int scaled_interlace_count;
 
 // Bilinear scaling using fixed-point arithmetic and constant values, used for 1.5x scaling mode
 void scale_bilinear() {
-	int begin = config->interlace ? interlace_counter : 0;
+	int begin = config->interlace ? scaled_interlace_count : 0;
 	int step = 1 + config->interlace;
 
     for (int y = begin; y < 216; y += step) {
@@ -198,12 +198,12 @@ void scale_bilinear() {
         }
     }
 
-	interlace_counter = !interlace_counter;
+	scaled_interlace_count = !scaled_interlace_count;
 }
 
 // Nearest neighbor version
 void scale_nearest() {
-	int begin = config->interlace ? interlace_counter : 0;
+	int begin = config->interlace ? scaled_interlace_count : 0;
 	int step = 1 + config->interlace;
 
     for (int y = begin; y < 216; y += step) {
@@ -212,24 +212,27 @@ void scale_nearest() {
         }
     }
 
-	interlace_counter = !interlace_counter;
+	scaled_interlace_count = !scaled_interlace_count;
 }
-
+extern int midi_handle;
 void draw_emu() {
     if (config->show_fps) tick_count = vm_get_tick_count();
 
     gb_run_frame(gb);
     gb_run_frame(gb);
 	if (fast_forward) {
+		int interlace_count = gb->display.interlace_count;
 		gb->display.lcd_draw_line = lcd_draw_line_stub;
 		gb_run_frame(gb);
     	gb_run_frame(gb);
 		gb->display.lcd_draw_line = lcd_draw_line;
+		gb->display.interlace_count = interlace_count;
 	}
 
 	if (config->scale == SCALE_1_5X_NEAREST) scale_nearest();
 	else if (config->scale == SCALE_1_5X_BILINEAR) scale_bilinear();
     vm_graphic_flush_layer(layer_hdl, 2);
+	if (config->audio) audio_update();
 
     if (config->show_fps) {
 		color.vm_color_565 = VM_COLOR_BLACK;

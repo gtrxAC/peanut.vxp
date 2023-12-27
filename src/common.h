@@ -6,7 +6,7 @@
 #include "vmchset.h"
 #include "vmstdlib.h"
 #include "vmtimer.h"
-#include "vm4res.h"
+#include "vmmm.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,6 +15,7 @@
 #define PEANUT_FULL_GBC_SUPPORT 1  // Uncomment for GBC support (uses more RAM; for 2500k version)
 // #define PEANUT_GB_12_COLOUR 0  // Uncomment for no GBC support (for standard and 500k versions)
 
+#include "audio.h"
 #include "peanut_gb.h"
 #include "stb_ds.h"
 #include "util.h"

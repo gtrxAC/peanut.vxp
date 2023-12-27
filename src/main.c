@@ -1,6 +1,7 @@
 #define ENABLE_LCD 1
 #define STB_DS_IMPLEMENTATION
 #define PEANUT_GB_HIGH_LCD_ACCURACY 0
+#define ENABLE_SOUND 1
 #include "common.h"
 
 VMINT layer_hdl[2];
