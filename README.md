@@ -30,7 +30,7 @@ peanut.vxp currently works on any phone with MRE 2.5 or above, those mostly bein
 
 ## How to build
 1. Install the dependencies outlined in the [MRE Makefile](https://github.com/gtrxAC/mre-makefile#dependencies) project.
-2. Run `make setup` and `make`.
+2. Run `make`.
 
 ## How to use
 1. Download the VXP file from [Releases](https://github.com/gtrxAC/peanut.vxp/releases), or compile it yourself by following the above steps.

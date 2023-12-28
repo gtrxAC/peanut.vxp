@@ -2,7 +2,7 @@
 #
 #  MRE Makefile
 # ______________________________________________________________________________
-# 
+#
 GCC = arm-none-eabi-gcc
 GPP = arm-none-eabi-g++
 PYTHON = python3
@@ -18,12 +18,12 @@ SHARED_PARAM = -c -fpic -march=armv5te -fvisibility=hidden -Os -mlittle-endian $
 GCC_PARAM = $(SHARED_PARAM)
 GPP_PARAM = $(SHARED_PARAM) -fno-threadsafe-statics -fno-exceptions -fno-non-call-exceptions
 
-LINK_LIB = -lstdc++ $(SDK)/lib/*.a 
-LINK_PARAM = -fno-threadsafe-statics -Wl,--gc-sections  -fpic -fpcc-struct-return --disable-libstdcxx-verbose -pie -lm -T "$(SDK)/scat.ld" 
+LINK_LIB = -lstdc++ $(SDK)/lib/*.a
+LINK_PARAM = -fno-threadsafe-statics -Wl,--gc-sections -fpic -fpcc-struct-return --disable-libstdcxx-verbose -pie -lm -T "$(SDK)/scat.ld"
 
 # ______________________________________________________________________________
-# 
-all: $(APP_FILE_NAME).vxp
+#
+all: build $(APP_FILE_NAME).vxp
 
 # 1. Compile
 build/%.o: src/%.c
@@ -44,9 +44,9 @@ build/$(APP_FILE_NAME).vxp: build/$(APP_FILE_NAME).axf
 $(APP_FILE_NAME).vxp: build/$(APP_FILE_NAME).vxp
 	$(PYTHON) $(SDK)/build.py $^ $@
 
-setup:
+build:
 	mkdir -p build
 
 clean:
 	rm -rf build
-	rm *.vxp
+	rm -f *.vxp

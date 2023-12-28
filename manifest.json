@@ -1,0 +1,11 @@
+{
+    "name": "PeanutVXP",
+    "vendor": "gtrxAC",
+    "app_name_multilang": ["PeanutVXP", "PeanutVXP", "PeanutVXP"],
+    "description": "Game Boy emulator",
+    "version": 230,
+
+    "required_ram": 2500,
+    "imsi": "1234567890",
+    "run_in_background": 0
+}
