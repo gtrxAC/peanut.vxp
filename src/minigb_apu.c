@@ -608,7 +608,7 @@ void audio_apu_init(void)
 					      0x77, 0xF3, 0xF1 };
 
 		for(uint_fast8_t i = 0; i < sizeof(regs_init); ++i)
-			audio_write(0xFF10 + i, regs_init[i]);
+			audio_apu_write(0xFF10 + i, regs_init[i]);
 	}
 
 	/* Initialise Wave Pattern RAM. */
@@ -619,6 +619,6 @@ void audio_apu_init(void)
 					      0xac, 0xdd, 0xda, 0x48 };
 
 		for(uint_fast8_t i = 0; i < sizeof(wave_init); ++i)
-			audio_write(0xFF30 + i, wave_init[i]);
+			audio_apu_write(0xFF30 + i, wave_init[i]);
 	}
 }
