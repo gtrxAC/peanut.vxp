@@ -80,7 +80,7 @@ void upgrade_config() {
     }
     if (config->version == 4) {
         // Added experimental audio option, disabled by default.
-        config->audio = VM_FALSE;
+        config->audio = AUDIO_OFF;
         config->version++;
     }
     save_config();
