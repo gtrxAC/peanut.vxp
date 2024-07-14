@@ -12,8 +12,8 @@ void audio_bitstream_deinit();
 typedef VMINT(*vm_get_sym_entry_t)(char* symbol);
 extern vm_get_sym_entry_t vm_get_sym_entry;
 
-#define RING_BUFFER_SIZE (AUDIO_SAMPLES*4*3)
-#define AUDIO_BUF_SIZE (AUDIO_SAMPLES*4)
+#define RING_BUFFER_SIZE (AUDIO_SAMPLES_MAX*4*3)
+#define AUDIO_BUF_SIZE (AUDIO_SAMPLES_MAX*4)
 
 #define F_ADR(t,x,a,adr) typedef t (*x##_) a; x##_ x = (x##_) adr;
 

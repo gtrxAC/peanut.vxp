@@ -7,6 +7,8 @@ PCM *pcm = 0;
 uint8_t *ring_buf = 0;
 uint8_t audio_buf[AUDIO_BUF_SIZE]; // temporally here, todo move to vm_malloc
 
+extern int fps;
+
 uint8_t audio_bitstream_read(const uint16_t addr){
     return audio_apu_read(addr);
 }
@@ -126,12 +128,36 @@ void audio_bitstream_update(){
     if(!pcm)
         return;
 
-    if(pcm->GetFreeSpace(pcm) < AUDIO_BUF_SIZE) // Data starts to break when the buffer is almost full, so it's better to skip
+    int free_ring_space = pcm->GetFreeSpace(pcm);
+    int in_ring_buf = RING_BUFFER_SIZE - free_ring_space;
+
+    if(free_ring_space < AUDIO_BUF_SIZE) // Data starts to break when the buffer is almost full, so it's better to skip
         return;
 
-    audio_apu_callback(0, audio_buf, AUDIO_BUF_SIZE);
+    int a_fps = fps;
 
-    audio_bitstream_put_buffer(audio_buf, AUDIO_BUF_SIZE, 0);
+    if(a_fps<10)
+        a_fps = 10;
+    else if (a_fps>60)
+        a_fps = 60;
+
+    int avg_audio_samples = AUDIO_SAMPLE_RATE / a_fps;
+
+    int next_audio_size = avg_audio_samples * 4 * 105 / 100;
+
+    if(next_audio_size < in_ring_buf)
+        return;
+
+    int audio_size = next_audio_size - in_ring_buf;
+
+    if(audio_size>AUDIO_BUF_SIZE)
+        return;
+
+    audio_size&=~0b11l;
+
+    audio_apu_callback(0, audio_buf, audio_size);
+
+    audio_bitstream_put_buffer(audio_buf, audio_size, 0);
 
     pcm->Play(pcm);
 }
