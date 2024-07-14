@@ -9,6 +9,8 @@ void audio_bitstream_update();
 typedef VMINT(*vm_get_sym_entry_t)(char* symbol);
 extern vm_get_sym_entry_t vm_get_sym_entry;
 
+#define RING_BUFFER_SIZE (AUDIO_SAMPLES*4*3)
+
 #define F_ADR(t,x,a,adr) typedef t (*x##_) a; x##_ x = (x##_) adr;
 
 typedef enum {
@@ -108,5 +110,12 @@ struct PCM {
    PCM_Event    (*Process)(PCM *hdl, PCM_Event event);
    PCM_Status   (*Close)(PCM *hdl);
 };
+
+typedef struct {
+   uint8_t      isStereo;
+   uint8_t      bitPerSample;
+   uint16_t     sampleFreq;
+   uint8_t      forceVoice;
+} PCM_Param;
 
 typedef void (*PCM_handle_t)(PCM *handle, PCM_Event event);
