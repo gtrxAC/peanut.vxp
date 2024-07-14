@@ -7,8 +7,11 @@ char *save_name;
 VMUINT8 *rom_data;
 VMUINT8 *cart_ram;
 
-int tick_count;
 char fps_str[8];
+int fps = 0;
+int fps_count = 0;
+int fps_timepoint = 0;
+
 
 VMBOOL fast_forward;
 
@@ -251,8 +254,6 @@ void scale_nearest() {
 }
 
 void draw_emu() {
-    if (config->show_fps) tick_count = vm_get_tick_count();
-
     gb_run_frame(gb);
     gb_run_frame(gb);
 	if (fast_forward) {
@@ -280,6 +281,15 @@ void draw_emu() {
 	if (config->audio) audio_update();
 
     if (config->show_fps) {
+		int timepoint = vm_get_tick_count();
+		fps_count++;
+		
+		if(timepoint - fps_timepoint >= 1000){
+			fps_timepoint = timepoint;
+			fps = fps_count;
+			fps_count = 0;
+		}
+
 		color.vm_color_565 = VM_COLOR_BLACK;
 		vm_graphic_setcolor(&color);
 		vm_graphic_fill_rect_ex(layer_hdl[0], 1, 1, 50, vm_graphic_get_character_height());
@@ -287,7 +297,7 @@ void draw_emu() {
 		color.vm_color_565 = VM_COLOR_WHITE;
 		vm_graphic_setcolor(&color);
 
-        sprintf(fps_str, "%d", (int) 1000 / (vm_get_tick_count() - tick_count));
+        sprintf(fps_str, "%d", fps);
         vm_ascii_to_ucs2(ucs2_str, 256, fps_str);
 		vm_graphic_textout_to_layer(layer_hdl[0], 1, 1, ucs2_str, 256);
     }
