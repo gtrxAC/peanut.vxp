@@ -274,8 +274,7 @@ void menu_confirm() {
                 menu_choice = 1;
             }
             else if (!strncmp(menu_list[menu_choice], "Audio", 5)) {
-                config->audio++;
-                if (config->audio == AUDIO_COUNT) config->audio = AUDIO_OFF;
+                audio_next_conf();
                 save_config();
                 set_menu(MENU_OPTIONS);
                 menu_choice = 2;

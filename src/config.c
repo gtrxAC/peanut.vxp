@@ -57,6 +57,8 @@ void default_config() {
     config->show_fps = VM_FALSE;
     config->basic_touch_labels = VM_FALSE;
     config->key_fast_forward = VM_KEY_NUM1;
+
+    config->audio = AUDIO_OFF;
     save_config();
 }
 

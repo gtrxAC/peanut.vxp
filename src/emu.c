@@ -405,6 +405,7 @@ void init_emu() {
 	log_write("Allocated GB state");
 	
 	load_config();
+	audio_init();
 	gb->direct.interlace = config->interlace;
 }
 

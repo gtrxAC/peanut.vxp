@@ -46,3 +46,24 @@ void audio_update(){
         break;
     }
 }
+
+void audio_init(){
+    if(config->audio == AUDIO_BITSTREAM)
+        audio_bitstream_init();
+}
+
+void audio_deinit(){
+    if(config->audio == AUDIO_BITSTREAM)
+        audio_bitstream_deinit();
+}
+
+void audio_next_conf() {
+    audio_deinit();
+
+    config->audio++;
+
+    if (config->audio == AUDIO_COUNT) 
+        config->audio = AUDIO_OFF;
+
+    audio_init();
+}

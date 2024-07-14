@@ -6,10 +6,14 @@ uint8_t audio_bitstream_read(const uint16_t addr);
 void audio_bitstream_write(const uint16_t addr, const uint8_t val);
 void audio_bitstream_update();
 
+void audio_bitstream_init();
+void audio_bitstream_deinit();
+
 typedef VMINT(*vm_get_sym_entry_t)(char* symbol);
 extern vm_get_sym_entry_t vm_get_sym_entry;
 
 #define RING_BUFFER_SIZE (AUDIO_SAMPLES*4*3)
+#define AUDIO_BUF_SIZE (AUDIO_SAMPLES*4)
 
 #define F_ADR(t,x,a,adr) typedef t (*x##_) a; x##_ x = (x##_) adr;
 

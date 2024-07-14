@@ -34,7 +34,8 @@
 #define SCREEN_REFRESH_CYCLES	70224.0
 #define VERTICAL_SYNC		(DMG_CLOCK_FREQ/SCREEN_REFRESH_CYCLES)
 
-#define AUDIO_SAMPLES		((unsigned)(AUDIO_SAMPLE_RATE / VERTICAL_SYNC))
+//#define AUDIO_SAMPLES		((unsigned)(AUDIO_SAMPLE_RATE / VERTICAL_SYNC))
+#define AUDIO_SAMPLES		((unsigned)(AUDIO_SAMPLE_RATE / 20))
 
 /**
  * Fill allocated buffer "data" with "len" number of 32-bit floating point

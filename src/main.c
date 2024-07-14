@@ -295,6 +295,8 @@ void handle_sysevt(VMINT message, VMINT param) {
 			// Create second layer that is used for rendering the game. This
 			// layer is not drawn when in the menus.
 			init_canvas();
+
+			audio_init();
 			break;
 			
 		case VM_MSG_PAINT: {
@@ -314,6 +316,8 @@ void handle_sysevt(VMINT message, VMINT param) {
 			if( layer_hdl[0] != -1 ) {
 				vm_graphic_delete_layer(layer_hdl[0]);
 			}
+
+			audio_deinit();
 			break;
 	}
 }
