@@ -151,7 +151,13 @@ void set_menu(Menu new_menu) {
         case MENU_OPTIONS: {
             arrput(menu_list, config->interlace ? "Interlacing: ON" : "Interlacing: OFF");
             arrput(menu_list, config->show_fps ? "FPS counter: ON" : "FPS counter: OFF");
-            arrput(menu_list, config->audio ? "Audio: ON (experimental)" : "Audio: OFF");
+            
+            switch (config->audio) {
+                case AUDIO_OFF: arrput(menu_list, "Audio: OFF"); break;
+                case AUDIO_MIDI: arrput(menu_list, "Audio: Midi (experimental)"); break;
+                case AUDIO_BITSTREAM: arrput(menu_list, "Audio: Bitstream (exp.)"); break;
+                default: arrput(menu_list, "Audio: Unknown"); break;
+            }
             switch (config->scale) {
                 case SCALE_1X: arrput(menu_list, "Scaling: 1x"); break;
                 case SCALE_1_5X_NEAREST: arrput(menu_list, "Scaling: 1.5x (nearest)"); break;
@@ -268,7 +274,7 @@ void menu_confirm() {
                 menu_choice = 1;
             }
             else if (!strncmp(menu_list[menu_choice], "Audio", 5)) {
-                config->audio = !config->audio;
+                audio_next_conf();
                 save_config();
                 set_menu(MENU_OPTIONS);
                 menu_choice = 2;

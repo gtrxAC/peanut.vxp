@@ -34,6 +34,18 @@ void log_write(char *str) {
 	vm_file_commit(log_file);
 }
 
+int log_printf(const char* format, ...) {
+    static char buf[1024*4];
+    va_list aptr;
+
+    va_start(aptr, format);
+    int ret = vsprintf(buf, format, aptr);
+    va_end(aptr);
+
+    log_write(buf);
+    return ret;
+}
+
 void input_exit(VMINT state, VMWSTR text) {
 	vm_exit_app();
 }
