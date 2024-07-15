@@ -1,5 +1,4 @@
 #pragma once
-//#include "common.h"
 #include "audio_midi.h"
 
 uint8_t audio_bitstream_read(const uint16_t addr);
@@ -14,8 +13,6 @@ extern vm_get_sym_entry_t vm_get_sym_entry;
 
 #define RING_BUFFER_SIZE (AUDIO_SAMPLES_MAX*4*3)
 #define AUDIO_BUF_SIZE (AUDIO_SAMPLES_MAX*4)
-
-#define F_ADR(t,x,a,adr) typedef t (*x##_) a; x##_ x = (x##_) adr;
 
 typedef enum {
    PCM_NONE,
