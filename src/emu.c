@@ -7,8 +7,11 @@ char *save_name;
 VMUINT8 *rom_data;
 VMUINT8 *cart_ram;
 
-int tick_count;
-char fps_str[8];
+char fps_str[16];
+int fps = 0;
+int fps_count = 0;
+int fps_timepoint = 0;
+
 
 VMBOOL fast_forward;
 
@@ -242,8 +245,9 @@ void scale_nearest() {
 	int step = 1 + config->interlace;
 
     for (int y = begin; y < 216; y += step) {
+		int sc_y =  (y*2/3)*160;
         for (int x = 0; x < 240; x++) {
-            ((VMUINT16 *)canvas_buf)[y*240 + x] = ((VMUINT16 *)scale_buf)[(y*2/3)*160 + (x*2/3)];
+            ((VMUINT16 *)canvas_buf)[y*240 + x] = ((VMUINT16 *)scale_buf)[sc_y + (x*2/3)];
         }
     }
 
@@ -251,8 +255,6 @@ void scale_nearest() {
 }
 
 void draw_emu() {
-    if (config->show_fps) tick_count = vm_get_tick_count();
-
     gb_run_frame(gb);
     gb_run_frame(gb);
 	if (fast_forward) {
@@ -279,15 +281,30 @@ void draw_emu() {
     vm_graphic_flush_layer(layer_hdl, 2);
 	if (config->audio) audio_update();
 
+	{
+		int timepoint = vm_get_tick_count();
+		fps_count++;
+
+		if(timepoint - fps_timepoint >= 1500){
+			fps_timepoint = timepoint;
+			fps = fps_count;
+		}
+		else if(timepoint - fps_timepoint >= 1000){
+			fps_timepoint = timepoint;
+			fps = fps_count;
+			fps_count = 0;
+		}
+	}
+
     if (config->show_fps) {
 		color.vm_color_565 = VM_COLOR_BLACK;
 		vm_graphic_setcolor(&color);
-		vm_graphic_fill_rect_ex(layer_hdl[0], 1, 1, 50, vm_graphic_get_character_height());
+		vm_graphic_fill_rect_ex(layer_hdl[0], 1, 1, 80, vm_graphic_get_character_height());
 
 		color.vm_color_565 = VM_COLOR_WHITE;
 		vm_graphic_setcolor(&color);
 
-        sprintf(fps_str, "%d", (int) 1000 / (vm_get_tick_count() - tick_count));
+        sprintf(fps_str, "%d (%d)", fps, fps*2);
         vm_ascii_to_ucs2(ucs2_str, 256, fps_str);
 		vm_graphic_textout_to_layer(layer_hdl[0], 1, 1, ucs2_str, 256);
     }
@@ -395,6 +412,7 @@ void init_emu() {
 	log_write("Allocated GB state");
 	
 	load_config();
+	audio_init();
 	gb->direct.interlace = config->interlace;
 }
 

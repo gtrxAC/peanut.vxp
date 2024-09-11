@@ -3,6 +3,13 @@
 
 #define CONFIG_VERSION 5
 
+typedef enum AudioMode {
+    AUDIO_OFF,
+    AUDIO_MIDI,
+    AUDIO_BITSTREAM,
+    AUDIO_COUNT,
+} AudioMode;
+
 typedef enum ScaleMode {
     SCALE_1X,
     SCALE_1_5X_NEAREST,
@@ -31,7 +38,7 @@ typedef struct Config {
     VMBOOL basic_touch_labels;
     int key_fast_forward;
 
-    VMBOOL audio;
+    AudioMode audio;
 } Config;
 
 void default_config();
