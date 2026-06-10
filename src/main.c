@@ -266,7 +266,7 @@ void vm_main(void) {
 	vm_reg_sysevt_callback(handle_sysevt);
 	vm_reg_keyboard_callback(handle_keyevt);
 	vm_reg_pen_callback(handle_penevt);
-	vm_create_timer(33, draw_frame);
+	vm_create_timer(1000 / 60, draw_frame);
 	vm_kbd_set_mode(VM_KEYPAD_2KEY_NUMBER);
 	log_write("Created event handlers");
 

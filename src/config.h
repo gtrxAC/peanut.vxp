@@ -39,6 +39,7 @@ typedef struct Config {
     int key_fast_forward;
 
     AudioMode audio;
+    int audio_volume;
 } Config;
 
 void default_config();

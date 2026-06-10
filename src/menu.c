@@ -158,6 +158,11 @@ void set_menu(Menu new_menu) {
                 case AUDIO_BITSTREAM: arrput(menu_list, "Audio: Bitstream (exp.)"); break;
                 default: arrput(menu_list, "Audio: Unknown"); break;
             }
+            {
+                static char tmp[30] = {0};
+                sprintf(tmp, "Audio volume: %d", config->audio_volume);
+                arrput(menu_list, tmp);
+            }
             switch (config->scale) {
                 case SCALE_1X: arrput(menu_list, "Scaling: 1x"); break;
                 case SCALE_1_5X_NEAREST: arrput(menu_list, "Scaling: 1.5x (nearest)"); break;
@@ -273,11 +278,22 @@ void menu_confirm() {
                 set_menu(MENU_OPTIONS);
                 menu_choice = 1;
             }
-            else if (!strncmp(menu_list[menu_choice], "Audio", 5)) {
+            else if (!strncmp(menu_list[menu_choice], "Audio:", 6)) {
                 audio_next_conf();
                 save_config();
                 set_menu(MENU_OPTIONS);
                 menu_choice = 2;
+            }
+            else if (!strncmp(menu_list[menu_choice], "Audio volume:", 13)) {
+                config->audio_volume++;
+                if (config->audio_volume > 6)
+                    config->audio_volume = 0;
+                if (config->audio_volume < 0)
+                    config->audio_volume = 0;
+                vm_set_volume(config->audio_volume);
+                save_config();
+                set_menu(MENU_OPTIONS);
+                menu_choice = 3;
             }
             else if (!strncmp(menu_list[menu_choice], "Scaling", 7)) {
                 config->scale++;
@@ -285,7 +301,7 @@ void menu_confirm() {
                 init_canvas();
                 save_config();
                 set_menu(MENU_OPTIONS);
-                menu_choice = 3;
+                menu_choice = 4;
             }
             else if (!strncmp(menu_list[menu_choice], "Palette", 7)) {
                 config->palette_choice++;
@@ -295,7 +311,7 @@ void menu_confirm() {
                 }
                 save_config();
                 set_menu(MENU_OPTIONS);
-                menu_choice = 4;
+                menu_choice = 5;
             }
             else if (!strcmp(menu_list[menu_choice], "Key mappings")) {
                 set_state(ST_KEY_MAPPER);

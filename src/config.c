@@ -59,6 +59,7 @@ void default_config() {
     config->key_fast_forward = VM_KEY_NUM1;
 
     config->audio = AUDIO_OFF;
+    config->audio_volume = 3;
     save_config();
 }
 
@@ -83,6 +84,11 @@ void upgrade_config() {
     if (config->version == 4) {
         // Added experimental audio option, disabled by default.
         config->audio = AUDIO_OFF;
+        config->version++;
+    }
+    if (config->version == 5) {
+        // Added audio volume
+        config->audio_volume = 3;
         config->version++;
     }
     save_config();

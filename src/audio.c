@@ -62,7 +62,9 @@ void audio_next_conf() {
 
     config->audio++;
 
-    if (config->audio == AUDIO_COUNT) 
+    if (config->audio >= AUDIO_COUNT) 
+        config->audio = AUDIO_OFF;
+    if (config->audio < AUDIO_OFF)
         config->audio = AUDIO_OFF;
 
     audio_init();

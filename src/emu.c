@@ -12,6 +12,10 @@ int fps = 0;
 int fps_count = 0;
 int fps_timepoint = 0;
 
+int tps = 0;
+int tps_count = 0;
+int tps_timepoint = 0;
+
 
 VMBOOL fast_forward;
 
@@ -255,59 +259,79 @@ void scale_nearest() {
 }
 
 void draw_emu() {
-    gb_run_frame(gb);
-    gb_run_frame(gb);
+	gb_run_frame(gb);
 	if (fast_forward) {
 		int interlace_count = gb->display.interlace_count;
 		gb->display.lcd_draw_line = lcd_draw_line_stub;
 		gb_run_frame(gb);
-    	gb_run_frame(gb);
 		gb->display.lcd_draw_line = lcd_draw_line;
 		gb->display.interlace_count = interlace_count;
 	}
 
-	if (config->scale == SCALE_1_5X_NEAREST) scale_nearest();
+	static int skip_frame = 0;
+	skip_frame = !skip_frame;
 
-	else if (config->scale == SCALE_1_5X_BILINEAR) {
-		// If using the grayscale palette and not in GBC mode, use a faster algorithm
-		#if PEANUT_FULL_GBC_SUPPORT
-			if (config->palette_choice == 0 && !gb->cgb.cgbMode) scale_bilinear_gray();
-		#else
-			if (config->palette_choice == 0) scale_bilinear_gray();
-		#endif
-		else scale_bilinear();
-	}
-
-    vm_graphic_flush_layer(layer_hdl, 2);
 	if (config->audio) audio_update();
 
 	{
 		int timepoint = vm_get_tick_count();
-		fps_count++;
+		tps_count++;
 
-		if(timepoint - fps_timepoint >= 1500){
-			fps_timepoint = timepoint;
-			fps = fps_count;
+		if (timepoint - tps_timepoint >= 1500) {
+			tps_timepoint = timepoint;
+			tps = tps_count;
 		}
-		else if(timepoint - fps_timepoint >= 1000){
-			fps_timepoint = timepoint;
-			fps = fps_count;
-			fps_count = 0;
+		else if (timepoint - tps_timepoint >= 1000) {
+			tps_timepoint = timepoint;
+			tps = tps_count;
+			tps_count = 0;
 		}
 	}
 
-    if (config->show_fps) {
-		color.vm_color_565 = VM_COLOR_BLACK;
-		vm_graphic_setcolor(&color);
-		vm_graphic_fill_rect_ex(layer_hdl[0], 1, 1, 80, vm_graphic_get_character_height());
+	if (!skip_frame) {
+		if (config->scale == SCALE_1_5X_NEAREST) scale_nearest();
 
-		color.vm_color_565 = VM_COLOR_WHITE;
-		vm_graphic_setcolor(&color);
+		else if (config->scale == SCALE_1_5X_BILINEAR) {
+			// If using the grayscale palette and not in GBC mode, use a faster algorithm
+#if PEANUT_FULL_GBC_SUPPORT
+			if (config->palette_choice == 0 && !gb->cgb.cgbMode) scale_bilinear_gray();
+#else
+			if (config->palette_choice == 0) scale_bilinear_gray();
+#endif
+			else scale_bilinear();
+		}
 
-        sprintf(fps_str, "%d (%d)", fps, fps*2);
-        vm_ascii_to_ucs2(ucs2_str, 256, fps_str);
-		vm_graphic_textout_to_layer(layer_hdl[0], 1, 1, ucs2_str, 256);
-    }
+
+		{
+			int timepoint = vm_get_tick_count();
+			fps_count++;
+
+			if (timepoint - fps_timepoint >= 1500) {
+				fps_timepoint = timepoint;
+				fps = fps_count;
+			}
+			else if (timepoint - fps_timepoint >= 1000) {
+				fps_timepoint = timepoint;
+				fps = fps_count;
+				fps_count = 0;
+			}
+		}
+
+		if (config->show_fps) {
+			color.vm_color_565 = VM_COLOR_BLACK;
+			vm_graphic_setcolor(&color);
+			vm_graphic_fill_rect_ex(layer_hdl[0], 1, 1, 240, vm_graphic_get_character_height());
+
+			color.vm_color_565 = VM_COLOR_WHITE;
+			vm_graphic_setcolor(&color);
+
+			sprintf(fps_str, "%d (%d)", fps, tps);
+			vm_ascii_to_ucs2(ucs2_str, 256, fps_str);
+			vm_graphic_textout_to_layer(layer_hdl[0], 1, 1, ucs2_str, 256);
+		}
+
+		vm_graphic_flush_layer(layer_hdl, 2);
+	}
 }
 
 // _____________________________________________________________________________
